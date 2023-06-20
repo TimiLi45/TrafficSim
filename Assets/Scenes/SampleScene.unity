@@ -123,6 +123,67 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &384583039
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 384583041}
+  - component: {fileID: 384583040}
+  - component: {fileID: 384583042}
+  m_Layer: 0
+  m_Name: Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &384583040
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 384583039}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8177dcc02a1fc643a9ba3cb86328be1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mainCamera: {fileID: 0}
+  currentlySelectedType: 2
+  isDragging: 0
+  clickedPosition: {x: 0, y: 0, z: 0}
+--- !u!4 &384583041
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 384583039}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 9.109162, y: -0.7489693, z: 7.90178}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &384583042
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 384583039}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f5c43c2a03ad824993c5b04f3a0d72f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &609565387
 GameObject:
   m_ObjectHideFlags: 0
@@ -443,6 +504,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fed51f39b557d36479703b9b55dfdbf1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxSpeed: 5
+  acceleration: 10
+  damping: 15
+  stepSize: 2
+  zoomDampening: 7.5
+  minHeight: 5
+  maxHeight: 50
+  zoomSpeed: 2
+  maxRotationSpeed: 1
+  edgeTolerance: 0.05
+  useScreenEdge: 1
 --- !u!4 &1812491269
 Transform:
   m_ObjectHideFlags: 0
