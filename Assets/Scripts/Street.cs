@@ -31,7 +31,7 @@ public class Street
     }
     public Node EndNode
     {
-        get { return EndNode; }
+        get { return endNode; }
     }
     public Street(TrafficManager _trafficManager ,Vector3 startPoint, Vector3 endPoint) {
         this._trafficManager = _trafficManager;
@@ -42,11 +42,16 @@ public class Street
 
         if (_trafficManager.FindNodeWithPosition(startPoint) == null)
             startNode = new Node(_trafficManager, startPoint);
+        else
+            startNode = _trafficManager.FindNodeWithPosition(startPoint);
+
         if (_trafficManager.FindNodeWithPosition(endPoint) == null)
             endNode = new Node(_trafficManager, endPoint);
+        else
+            endNode = _trafficManager.FindNodeWithPosition(endPoint);
 
-        startNode.MakeConnection(startNode, endNode);
-        endNode.MakeConnection(endNode, startNode);
+        startNode.MakeConnection(endNode);
+        endNode.MakeConnection(startNode);
 
         GenerateWayPoints();
     }
