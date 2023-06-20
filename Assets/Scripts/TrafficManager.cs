@@ -6,11 +6,13 @@ using UnityEngine;
 
 public class TrafficManager : MonoBehaviour
 {
+    [SerializeField]
+    float nodeMergeDistance = 2.0f;
+
     List<Street> streetList = new();
 
     public void AddStreet(Vector3 startPoint, Vector3 endPoint)
     {
-        //Erstelle die Straﬂe
         streetList.Add(new Street(this, startPoint, endPoint));
     }
 
@@ -37,15 +39,15 @@ public class TrafficManager : MonoBehaviour
     {
         foreach (Street street in streetList)
         {
-            if (IsInDistance(street.StartNode.Position, Position, 3))
+            if (IsInDistance(street.StartNode.Position, Position, nodeMergeDistance))
                 return street.StartNode;
-            if (IsInDistance(street.EndNode.Position, Position, 3))
+            if (IsInDistance(street.EndNode.Position, Position, nodeMergeDistance))
                 return street.EndNode;
         }
         return null;
     }
 
-    private bool IsInDistance(Vector3 a, Vector3 b, int distance)
+    private bool IsInDistance(Vector3 a, Vector3 b, float distance)
     {
         if (Vector3.Distance(a, b) < distance)
             return true;

@@ -1,6 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
+using UnityEditor.MemoryProfiler;
 using UnityEngine;
+using UnityEngine.InputSystem.HID;
 
 public class Node
 {
@@ -32,10 +36,16 @@ public class Node
         this.trafficManager = trafficManager;
         nodeID = currentNodeID++;
         this.position = position;
+        GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        sphere.transform.position = new Vector3(position.x, 0, position.z);
     }
 
-    public void MakeConnection(Node a, Node b)
+    public void MakeConnection(Node node)
     {
-        connections.Add(new Connection(Vector3.Distance(a.position, b.position), b));
+        connections.Add(new Connection(Vector3.Distance(this.position, node.Position), node));
+        GameObject connectionLine = new GameObject();
+        LineRenderer renderedLine = connectionLine.AddComponent<LineRenderer>();
+        renderedLine.SetPosition(0, this.position);
+        renderedLine.SetPosition(1, node.Position);
     }
 }
