@@ -25,6 +25,10 @@ public class Street
     {
         get { return streetID; }
     }
+    public List<Vector3> WayPoints
+    {
+        get { return wayPoints; }
+    }
     public Node StartNode
     {
         get { return startNode; }
@@ -33,6 +37,7 @@ public class Street
     {
         get { return endNode; }
     }
+
     public Street(TrafficManager _trafficManager ,Vector3 startPoint, Vector3 endPoint) {
         this._trafficManager = _trafficManager;
         this.startPoint = startPoint;   
@@ -53,16 +58,22 @@ public class Street
         startNode.MakeConnection(endNode, this);
         endNode.MakeConnection(startNode, this);
 
-        GenerateWayPoints();
+        GenerateWayPoints(_trafficManager.WayPointDistance);
     }
 
-    private void GenerateWayPoints()
+    private void GenerateWayPoints(float spacing)
     {
-        wayPoints = new List<Vector3>
-        {
-            startPoint,
-            endPoint
-        };
+        wayPoints = new List<Vector3>();
+        Vector3 previousPoint = startPoint;
+
+        wayPoints.Add(startPoint);
+        for(float i = spacing; i < Vector3.Distance(startPoint, endPoint) - spacing; i += spacing)
+        { 
+            Vector3 direction = (endPoint - startPoint).normalized;
+            wayPoints.Add(previousPoint + direction * spacing);
+            previousPoint = previousPoint + direction * spacing;
+        }
+        wayPoints.Add(endPoint);
     }
 
     public void DeleteNodes()

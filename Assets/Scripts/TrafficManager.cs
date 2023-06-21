@@ -8,8 +8,25 @@ public class TrafficManager : MonoBehaviour
 {
     [SerializeField]
     float nodeMergeDistance = 2.0f;
+    [SerializeField]
+    float wayPointDistance = .3f;
+    [SerializeField]
+    float wayPointSphereSize = .2f;
 
     List<Street> streetList = new();
+    public List<Street> StreetList
+    {
+        get { return streetList; }
+    }
+
+    public float WayPointDistance
+    {
+        get { return wayPointDistance; }
+    }
+    public float WayPointSphereSize
+    {
+        get { return wayPointSphereSize; }
+    }
     public List<Street> StreetList
     {
         get { return streetList; }
