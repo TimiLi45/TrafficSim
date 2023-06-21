@@ -10,6 +10,10 @@ public class TrafficManager : MonoBehaviour
     float nodeMergeDistance = 2.0f;
 
     List<Street> streetList = new();
+    public List<Street> StreetList
+    {
+        get { return streetList; }
+    }
 
     public void AddStreet(Vector3 startPoint, Vector3 endPoint)
     {
@@ -47,11 +51,16 @@ public class TrafficManager : MonoBehaviour
         return null;
     }
 
-    private bool IsInDistance(Vector3 a, Vector3 b, float distance)
+    public bool IsInDistance(Vector3 a, Vector3 b, float distance)
     {
         if (Vector3.Distance(a, b) < distance)
             return true;
         return false;
+    }
+
+    public void DeleteCarSpawner(CarSpawner carSpawner)
+    {
+        carSpawner = null;
     }
 
 }
