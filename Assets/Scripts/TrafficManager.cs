@@ -14,6 +14,10 @@ public class TrafficManager : MonoBehaviour
     float wayPointSphereSize = .2f;
 
     List<Street> streetList = new();
+    public List<Street> StreetList
+    {
+        get { return streetList; }
+    }
 
     public float WayPointDistance
     {
@@ -64,11 +68,16 @@ public class TrafficManager : MonoBehaviour
         return null;
     }
 
-    private bool IsInDistance(Vector3 a, Vector3 b, float distance)
+    public bool IsInDistance(Vector3 a, Vector3 b, float distance)
     {
         if (Vector3.Distance(a, b) < distance)
             return true;
         return false;
+    }
+
+    public void DeleteCarSpawner(CarSpawner carSpawner)
+    {
+        carSpawner = null;
     }
 
 }
