@@ -14,7 +14,9 @@ public class Node
 
 
     int nodeID;
+
     List<Connection> connections;
+
     Vector3 position;
 
     public int NodeID
@@ -37,12 +39,12 @@ public class Node
         nodeID = currentNodeID++;
         this.position = position;
         GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        sphere.transform.position = new Vector3(position.x, 0, position.z);
+        sphere.transform.position = position;
     }
 
-    public void MakeConnection(Node node)
+    public void MakeConnection(Node node, Street connectedStreet)
     {
-        connections.Add(new Connection(Vector3.Distance(this.position, node.Position), node));
+        connections.Add(new Connection(Vector3.Distance(this.position, node.Position), node, connectedStreet));
         GameObject connectionLine = new GameObject();
         LineRenderer renderedLine = connectionLine.AddComponent<LineRenderer>();
         renderedLine.SetPosition(0, this.position);

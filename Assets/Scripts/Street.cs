@@ -50,8 +50,8 @@ public class Street
         else
             endNode = _trafficManager.FindNodeWithPosition(endPoint);
 
-        startNode.MakeConnection(endNode);
-        endNode.MakeConnection(startNode);
+        startNode.MakeConnection(endNode, this);
+        endNode.MakeConnection(startNode, this);
 
         GenerateWayPoints();
     }
