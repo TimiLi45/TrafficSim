@@ -37,7 +37,7 @@ public class Node
         nodeID = currentNodeID++;
         this.position = position;
         GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        sphere.transform.position = new Vector3(position.x, 0, position.z);
+        sphere.transform.position = position;
     }
 
     public void MakeConnection(Node node)
