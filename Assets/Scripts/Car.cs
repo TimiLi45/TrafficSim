@@ -28,23 +28,47 @@ public class Car : MonoBehaviour
     int maxSpeed = 120;
     float speed = 0f;
 
+<<<<<<< Updated upstream
+=======
+
+    bool    brake = false;
+    float     acceleration = .02f;
+    float     deceleration = 0.05f;
+    int     maxSpeed = 120;
+    float   speed = 0f;
+
+>>>>>>> Stashed changes
     float maxDistanceFront = 3f;
 
     int targetNodeID = -1;
     int currentArrayPosition = -1;
     Node targetNode;
     Node currentNode;
+<<<<<<< Updated upstream
     Vector3 targetLocation = new(100, 0, 0);
     List<Vector3> Waypoints = new List<Vector3>();
 
+=======
+    Vector3 targetLocation = new (100,0,0);
+    List<Vector3> Waypoints = new List<Vector3>();
+>>>>>>> Stashed changes
 
     Street currentStreet;
 
 
     public void Awake(TrafficManager trafficManager, Node startNode)
     {
+<<<<<<< Updated upstream
         _trafficManager = trafficManager;
         currentNode = startNode;
+=======
+        Debug.Log("Star");
+        Rotate();
+        Waypoints.Add(new Vector3(100,0,20));
+        Waypoints.Add(new Vector3(33, 0, 0));
+        Waypoints.Add(new Vector3(0, 0, 0));
+
+>>>>>>> Stashed changes
     }
 
 
@@ -171,8 +195,17 @@ public class Car : MonoBehaviour
     private void Rotate()
     {
         Vector3 direction = targetLocation - transform.position;
+<<<<<<< Updated upstream
         Quaternion rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
         transform.rotation = rotation;
+=======
+        Quaternion rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);   
+        transform.rotation = rotation;
+
+        
+    }
+
+>>>>>>> Stashed changes
 
 
     }
