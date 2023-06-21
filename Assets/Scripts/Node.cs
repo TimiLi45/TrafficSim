@@ -40,6 +40,8 @@ public class Node
         this.position = position;
         GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         sphere.transform.position = position;
+        sphere.layer = LayerMask.NameToLayer("Ignore Raycast");
+        sphere.name = "node";
     }
 
     public void MakeConnection(Node node, Street connectedStreet)

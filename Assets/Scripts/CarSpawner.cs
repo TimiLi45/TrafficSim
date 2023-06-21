@@ -64,7 +64,7 @@ public class CarSpawner  : MonoBehaviour
     {
         GameObject car = new GameObject();
         car.AddComponent<Car>();
-        car.GetComponent<Car>().Awake(trafficManager,connectedNode);
+        //car.GetComponent<Car>().Awake(trafficManager,connectedNode);
     }
 
 
