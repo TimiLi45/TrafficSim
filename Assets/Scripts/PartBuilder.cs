@@ -12,7 +12,7 @@ public enum BuildableTypes
     Crossroad,
     BezierCurve,
     Straight,
-    Ramp
+    CarSpawner
 }
 
 public class PartBuilder : MonoBehaviour
@@ -44,6 +44,28 @@ public class PartBuilder : MonoBehaviour
     Vector3 endDrag;
 
     Plane plane = new Plane(Vector3.up, 0);
+
+    public BuildableTypes CurrentlySelectedType
+    {
+        get { return currentlySelectedType; }
+        set { currentlySelectedType = value; }
+    } 
+
+    public void SetCurrentlySelectedTypebyInt(int ID)
+    {
+        switch (ID)
+        {
+            case 0:
+                currentlySelectedType = BuildableTypes.BezierCurve;
+                break;
+            case 1:
+                currentlySelectedType = BuildableTypes.Straight;
+                break;
+            case 2:
+                currentlySelectedType = BuildableTypes.CarSpawner;
+                break;
+        }
+    }
 
     void Awake()
     {
@@ -88,12 +110,13 @@ public class PartBuilder : MonoBehaviour
                 isDragging = true;
                 startDrag = mousePositionInGame;
                 break;
-            case BuildableTypes.Ramp:
+            case BuildableTypes.CarSpawner:
+                PlaceCarSpawner();
                 break;
         }
     }
 
-    private void GetMousePosition()
+    private Vector3 GetMousePosition()
     {
         Vector3 worldposition;
         float distance;
@@ -107,5 +130,12 @@ public class PartBuilder : MonoBehaviour
 
         Physics.Raycast(ray, out hit, 1000f);
         mousePositionInGame = hit.point;
+        return mousePositionInGame;
+    }
+
+    private void PlaceCarSpawner()
+    {
+        Vector3 placePosition = GetMousePosition();
+        trafficManager.AddCarSpawner(placePosition);
     }
 }
