@@ -37,23 +37,19 @@ public class Car : MonoBehaviour
     float speed = 0f;
     float maxDistanceFront = 0.4f;
 
-
     int currentListPosition = -1;
     Node nextNode;
     Node targetNode;
 
-
     Vector3 targetLocation;
     List<Vector3> Waypoints = new List<Vector3>();
     Street currentStreet;
-
 
     public void GetData(TrafficManager trafficManager, Node startNode)
     {
 
         if (startNode == null)
         {
-            Debug.Log("StarNode nicht übergeben");
             DeletCar();
         }
         _trafficManager = trafficManager;
@@ -63,13 +59,11 @@ public class Car : MonoBehaviour
             currentStreet = startNode.Connetions[0].ConnectedStreet;
             transform.position = currentStreet.StartNode.Position;
             targetLocation = currentStreet.EndNode.Position;
-
         }
         else
         {
             DeletCar();
         }
-
         AddMesh();
         _verhalten = Verhalten.drive;
     }
@@ -92,7 +86,7 @@ public class Car : MonoBehaviour
                 }
         }
 
-        //Später durch model ersetzen
+        //Spï¿½ter durch model ersetzen
         if (cube != null)
             cube.transform.position = transform.position;
 
@@ -122,7 +116,6 @@ public class Car : MonoBehaviour
             {
                 DeletCar();
             }
-
         }
 
         if (currentStreet == null)
@@ -135,32 +128,23 @@ public class Car : MonoBehaviour
             Waypoints.Add(currentStreet.StartNode.Position);
             Waypoints.Add(currentStreet.EndNode.Position);
         }
-
-
-
-
     }
 
     private void NextWaypoint()
     {
         if (currentListPosition + 1 < Waypoints.Count)
         {
-
-            Debug.Log("hallo");
-
             currentListPosition++;
             targetLocation = Waypoints[currentListPosition];
         }
         else
         {
             FindPath();
-            
-            
+
             if (currentStreet != null)
             {
                 targetLocation = Waypoints[0];
             }
-
         }
     }
 
@@ -168,7 +152,6 @@ public class Car : MonoBehaviour
     {
         if (speed < maxSpeed)
         {
-            
             speed = speed + acceleration;
         }
         else
@@ -186,7 +169,6 @@ public class Car : MonoBehaviour
             {
                 speed = 0;
             }
-
         }
     }
 
@@ -195,55 +177,40 @@ public class Car : MonoBehaviour
         Vector3 direction = targetLocation - transform.position;
         if (direction != Vector3.zero)
         {
-
             Quaternion rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
             transform.rotation = rotation;
-
-
         }
     }
 
     private void AddMesh()
     {
         cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-
-        Debug.Log("CubePosition:" + cube.transform.position);
-        Debug.Log("SelfPosition:" + transform.position);
-
     }
 
     private Street FindStreetOnCurrentStreet()
     {
-        List<Street> verfügbareStraßen = new List<Street>();
+        List<Street> verfï¿½gbareStraï¿½en = new List<Street>();
 
         foreach (Connection connection in currentStreet.EndNode.Connetions)
         {
             if (connection.ConnectedStreet.StreetID != currentStreet.StreetID)
             {
-                verfügbareStraßen.Add(connection.ConnectedStreet);
-
+                verfï¿½gbareStraï¿½en.Add(connection.ConnectedStreet);
             }
         }
 
-        if (verfügbareStraßen.Count > 0)
+        if (verfï¿½gbareStraï¿½en.Count > 0)
         {
             Random random = new();
-            int randomIndex = random.Next(0, verfügbareStraßen.Count);
-            return verfügbareStraßen[randomIndex];
-
+            int randomIndex = random.Next(0, verfï¿½gbareStraï¿½en.Count);
+            return verfï¿½gbareStraï¿½en[randomIndex];
         }
         return null;
     }
 
     private void DeletCar()
     {
-      
         Destroy(this.gameObject);
         Destroy(cube);
-
     }
-
 }
-
-
-

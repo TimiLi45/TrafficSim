@@ -15,20 +15,14 @@ public class CarSpawner  : MonoBehaviour
     Vector3 position;
     private float timeRemaining = 3;
 
-
-
     public void GetData(TrafficManager trafficManager, Vector3 position)
     {
         this.trafficManager = trafficManager;
         this.position = position;
 
-
         connectedNode = trafficManager.FindNodeWithPosition(position);
         GameObject cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         cylinder.transform.position = connectedNode.Position;
-
-
-
     }
 
 
@@ -48,15 +42,7 @@ public class CarSpawner  : MonoBehaviour
 
     private void SpawnCar()
     {
-        Debug.Log("Spawn car");
-     
-
         GameObject car = new GameObject("Car");
         car.AddComponent<Car>().GetData(trafficManager, connectedNode);
-        //Car carSkript = GetComponent<Car>();
-        //carSkript.GetData(trafficManager, connectedNode);
-
     }
-
-
 }
