@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class TrafficManager : MonoBehaviour
@@ -14,10 +16,6 @@ public class TrafficManager : MonoBehaviour
     float wayPointSphereSize = .2f;
 
     List<Street> streetList = new();
-    public List<Street> StreetList
-    {
-        get { return streetList; }
-    }
 
     public float WayPointDistance
     {
@@ -37,21 +35,19 @@ public class TrafficManager : MonoBehaviour
         streetList.Add(new Street(this, startPoint, endPoint));
     }
 
-    public void DeleteStreet(int streetID)
+    public void GenerateIntersection(Street firstStreet, Street secondStreet, Vector3 intersectionPosition)
     {
-        foreach (Street street in streetList)
-        {
-            if (street.StreetID == streetID)
-            {
-                street.DeleteNodes();
-                streetList.Remove(street);
-                break;
-            }            
-        }
+        DeleteStreet(firstStreet);
+        DeleteStreet(secondStreet);
+        streetList.Add(new Street(this, firstStreet.StartNode.Position, intersectionPosition));
+        streetList.Add(new Street(this, firstStreet.EndNode.Position, intersectionPosition));
+        streetList.Add(new Street(this, secondStreet.StartNode.Position, intersectionPosition));
+        streetList.Add(new Street(this, secondStreet.EndNode.Position, intersectionPosition));
     }
 
     public void DeleteStreet(Street street)
     {
+        street.DeleteLine();
         street.DeleteNodes();
         streetList.Remove(street);
     }
@@ -66,6 +62,11 @@ public class TrafficManager : MonoBehaviour
                 return street.EndNode;
         }
         return null;
+    }
+
+    public bool IsNodeOnStreet(Node node, Street street)
+    {
+        return (Math.Abs(Vector3.Distance(street.StartNode.Position, node.Position)) + Math.Abs(Vector3.Distance(street.EndNode.Position, node.Position))) == Math.Abs(Vector3.Distance(street.StartNode.Position, street.EndNode.Position));
     }
 
     public bool IsInDistance(Vector3 a, Vector3 b, float distance)

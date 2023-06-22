@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
 public class InteractionManager : MonoBehaviour
 {
@@ -50,6 +51,7 @@ public class InteractionManager : MonoBehaviour
                 GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 sphere.transform.localScale = new(trafficManager.WayPointSphereSize, trafficManager.WayPointSphereSize, trafficManager.WayPointSphereSize);
                 sphere.transform.position = wayPoint;
+                sphere.layer = LayerMask.NameToLayer("Ignore Raycast");
                 wayPointSpheres.Add(sphere);
             }
         }
