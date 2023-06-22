@@ -21,7 +21,7 @@ public class Street
     Node endNode;
 
     GameObject streetLine;
-
+  
     public int StreetID
     {
         get { return streetID; }
@@ -38,9 +38,10 @@ public class Street
     {
         get { return endNode; }
     }
-    public Street(TrafficManager _trafficManager ,Vector3 startPoint, Vector3 endPoint) {
+    public Street(TrafficManager _trafficManager, Vector3 startPoint, Vector3 endPoint)
+    {
         this._trafficManager = _trafficManager;
-        this.startPoint = startPoint;   
+        this.startPoint = startPoint;
         this.endPoint = endPoint;
         wayPoints = new List<Vector3>();
         streetLine = new GameObject();
@@ -149,7 +150,7 @@ public class Street
         {
             startNode.DeleteSphere();
         }
-        if(endNode.Connetions.Count <= 1)
+        if (endNode.Connetions.Count <= 1)
         {
             endNode.DeleteSphere();
         }

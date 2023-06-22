@@ -35,6 +35,26 @@ public class TrafficManager : MonoBehaviour
         streetList.Add(new Street(this, startPoint, endPoint));
     }
 
+    public void AddCarSpawner(Vector3 position)
+    {
+        bool found = false;
+        foreach (Street street in StreetList)
+        {
+            if (IsInDistance(position, street.StartNode.Position, 5f))
+            {
+                GameObject carSpawner = new GameObject();
+                carSpawner.AddComponent<CarSpawner>().GetData(this, position);
+                carSpawner.name = "CarSpawner";
+                found = true;
+                return;
+            }
+        }
+        if (!found)
+        {
+            Debug.Log("No Location Found for Car Spawner");
+        }
+    }
+
     public void GenerateIntersection(Street firstStreet, Street secondStreet, Vector3 intersectionPosition)
     {
         DeleteStreet(firstStreet);
