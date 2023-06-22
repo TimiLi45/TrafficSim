@@ -7,64 +7,55 @@ using UnityEditorInternal;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
-
-
-
-
 public class CarSpawner  : MonoBehaviour 
 {
     TrafficManager trafficManager;
     Node connectedNode;
     bool active = false;
     Vector3 position;
-    private float _timer = 0f;
+    private float timeRemaining = 3;
 
-    [SerializeField]
-    float CarSpanRate = 2f;
 
-    // Konstructor
-    public CarSpawner(TrafficManager trafficManager, Vector3 position)
+
+    public void GetData(TrafficManager trafficManager, Vector3 position)
     {
         this.trafficManager = trafficManager;
         this.position = position;
 
-    }
+
+        connectedNode = trafficManager.FindNodeWithPosition(position);
+        GameObject cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        cylinder.transform.position = connectedNode.Position;
 
 
-    void Start()
-    {
-        foreach (Street street in trafficManager.StreetList)
-        {
-            if (trafficManager.IsInDistance( position, street.StartNode.Position, 5f))
-            {
-                active = true;
-                connectedNode = street.StartNode;
-            }
-        }
-
-        if (!active)
-            Debug.Log(this + " self delet becouse no Node in area");
-            trafficManager.DeleteCarSpawner(this);
 
     }
+
+
 
     private void Update()
     {
-        _timer =+Time.deltaTime;
-        if(_timer >= CarSpanRate)
+        if (timeRemaining > 0)
         {
-            SpawnCar();
-            _timer = 0f;
+            timeRemaining -= Time.deltaTime;
         }
-
-
+        else
+        {
+            timeRemaining = 3;
+            SpawnCar();
+        }
     }   
 
     private void SpawnCar()
     {
-        GameObject car = new GameObject();
-        car.AddComponent<Car>();
-        car.GetComponent<Car>().Awake(trafficManager,connectedNode);
+        Debug.Log("Spawn car");
+     
+
+        GameObject car = new GameObject("Car");
+        car.AddComponent<Car>().GetData(trafficManager, connectedNode);
+        //Car carSkript = GetComponent<Car>();
+        //carSkript.GetData(trafficManager, connectedNode);
+
     }
 
 

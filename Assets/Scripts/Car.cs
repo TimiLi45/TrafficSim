@@ -3,10 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Xml.Serialization;
+using Unity.VisualScripting;
+using UnityEditor.Experimental.GraphView;
 using UnityEditor.MemoryProfiler;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.XR;
+using static UnityEditor.PlayerSettings;
+using static UnityEditor.Progress;
 using Debug = UnityEngine.Debug;
 using Random = System.Random;
 
@@ -20,77 +26,56 @@ public class Car : MonoBehaviour
         deceleration
 
     }
-    Verhalten _verhalten = Verhalten.drive;
+    Verhalten _verhalten = Verhalten.none;
 
-    bool brake = false;
-    float acceleration = .02f;
+    GameObject cube;
+
+    bool lastRound = false;
+    float acceleration = .05f;
     float deceleration = 0.05f;
     int maxSpeed = 120;
     float speed = 0f;
+    float maxDistanceFront = 0.4f;
 
-<<<<<<< Updated upstream
-=======
 
-    bool    brake = false;
-    float     acceleration = .02f;
-    float     deceleration = 0.05f;
-    int     maxSpeed = 120;
-    float   speed = 0f;
-
->>>>>>> Stashed changes
-    float maxDistanceFront = 3f;
-
-    int targetNodeID = -1;
-    int currentArrayPosition = -1;
+    int currentListPosition = -1;
+    Node nextNode;
     Node targetNode;
-    Node currentNode;
-<<<<<<< Updated upstream
-    Vector3 targetLocation = new(100, 0, 0);
-    List<Vector3> Waypoints = new List<Vector3>();
 
-=======
-    Vector3 targetLocation = new (100,0,0);
-    List<Vector3> Waypoints = new List<Vector3>();
->>>>>>> Stashed changes
 
+    Vector3 targetLocation;
+    List<Vector3> Waypoints = new List<Vector3>();
     Street currentStreet;
 
 
-    public void Awake(TrafficManager trafficManager, Node startNode)
+    public void GetData(TrafficManager trafficManager, Node startNode)
     {
-<<<<<<< Updated upstream
+
+        if (startNode == null)
+        {
+            Debug.Log("StarNode nicht übergeben");
+            DeletCar();
+        }
         _trafficManager = trafficManager;
-        currentNode = startNode;
-=======
-        Debug.Log("Star");
-        Rotate();
-        Waypoints.Add(new Vector3(100,0,20));
-        Waypoints.Add(new Vector3(33, 0, 0));
-        Waypoints.Add(new Vector3(0, 0, 0));
 
->>>>>>> Stashed changes
-    }
+        if (startNode.Connetions[0].ConnectedStreet != null)
+        {
+            currentStreet = startNode.Connetions[0].ConnectedStreet;
+            transform.position = currentStreet.StartNode.Position;
+            targetLocation = currentStreet.EndNode.Position;
 
+        }
+        else
+        {
+            DeletCar();
+        }
 
-
-    // Recplaces Konstructor
-    private void Start()
-    {
-        FindPath();
-        Rotate();
+        AddMesh();
+        _verhalten = Verhalten.drive;
     }
 
     private void Update()
     {
-
-        /*RaycastHit hit;
-        Debug.DrawRay(transform.position, transform.forward * maxDistanceFront , Color.yellow);
-        if (Physics.Raycast(transform.position, transform.position * maxDistanceFront, out hit))
-        {
-            _verhalten = Verhalten.deceleration;
-           
-        }
-        */
         Rotate();
         switch (_verhalten)
         {
@@ -107,70 +92,83 @@ public class Car : MonoBehaviour
                 }
         }
 
-        Debug.Log(speed);
+        //Später durch model ersetzen
+        if (cube != null)
+            cube.transform.position = transform.position;
+
 
         transform.position = Vector3.MoveTowards(transform.position, targetLocation, speed * Time.deltaTime);
         if (Vector3.Distance(transform.position, targetLocation) < maxDistanceFront)
         {
-            /*if (currentArrayPosition + 1 > Waypoints.Count)
-            {
-                Waypoints.Add(new Vector3(0, 0, 0));
-                currentArrayPosition = -1;
-                Debug.Log("not found");
-            }
-            else
-            {
-                targetLocation = Waypoints[currentArrayPosition + 1];
-                currentArrayPosition++;
-                Debug.Log("next");
-            }
-            */
-            Random random = new();
-            targetLocation = new Vector3(random.Next(-100, 100), 0, random.Next(-100, 100));
-            maxSpeed = random.Next(50, 200);
-
-
+            NextWaypoint();
         }
     }
 
-
     private void FindPath()
     {
-        if (currentNode.Connetions.Count == 0)
+        if (lastRound)
         {
-            Destroy(this);
+            DeletCar();
+        }
+        else
+        {
+            if (currentStreet != null)
+            {
+                Waypoints.Add(currentStreet.StartNode.Position);
+                Waypoints.Add(currentStreet.EndNode.Position);
+                currentStreet = FindStreetOnCurrentStreet();
+            }
+            else
+            {
+                DeletCar();
+            }
+
+        }
+
+        if (currentStreet == null)
+        {
+            lastRound = true;
         }
         else
         {
             Waypoints.Clear();
-            Random random = new();
-            int selectetRoad = random.Next(currentNode.Connetions.Count);
-            //Waypoints.Add( currentNode.Connetions[selectetRoad].)
+            Waypoints.Add(currentStreet.StartNode.Position);
+            Waypoints.Add(currentStreet.EndNode.Position);
         }
-        
+
+
+
+
     }
-    private void RandomStreet()
+
+    private void NextWaypoint()
     {
-        Random random = new();
-        List<Connection> possibleConnections = currentNode.Connetions;
-        foreach (Connection connection in possibleConnections)
+        if (currentListPosition + 1 < Waypoints.Count)
         {
-            if (connection.EndNode.NodeID == currentNode.NodeID)
-                possibleConnections.Remove(connection);
+
+            Debug.Log("hallo");
+
+            currentListPosition++;
+            targetLocation = Waypoints[currentListPosition];
         }
-        if (possibleConnections.Count == 0)
+        else
         {
-            GameObject.Destroy(this);
-            return;
+            FindPath();
+            
+            
+            if (currentStreet != null)
+            {
+                targetLocation = Waypoints[0];
+            }
+
         }
-        targetNode = possibleConnections[random.Next(possibleConnections.Count)].EndNode;
     }
 
     private void Acceleration()
     {
         if (speed < maxSpeed)
         {
-            brake = false;
+            
             speed = speed + acceleration;
         }
         else
@@ -195,21 +193,57 @@ public class Car : MonoBehaviour
     private void Rotate()
     {
         Vector3 direction = targetLocation - transform.position;
-<<<<<<< Updated upstream
-        Quaternion rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
-        transform.rotation = rotation;
-=======
-        Quaternion rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);   
-        transform.rotation = rotation;
+        if (direction != Vector3.zero)
+        {
 
-        
+            Quaternion rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
+            transform.rotation = rotation;
+
+
+        }
     }
 
->>>>>>> Stashed changes
+    private void AddMesh()
+    {
+        cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
 
+        Debug.Log("CubePosition:" + cube.transform.position);
+        Debug.Log("SelfPosition:" + transform.position);
 
     }
 
+    private Street FindStreetOnCurrentStreet()
+    {
+        List<Street> verfügbareStraßen = new List<Street>();
 
+        foreach (Connection connection in currentStreet.EndNode.Connetions)
+        {
+            if (connection.ConnectedStreet.StreetID != currentStreet.StreetID)
+            {
+                verfügbareStraßen.Add(connection.ConnectedStreet);
+
+            }
+        }
+
+        if (verfügbareStraßen.Count > 0)
+        {
+            Random random = new();
+            int randomIndex = random.Next(0, verfügbareStraßen.Count);
+            return verfügbareStraßen[randomIndex];
+
+        }
+        return null;
+    }
+
+    private void DeletCar()
+    {
+      
+        Destroy(this.gameObject);
+        Destroy(cube);
+
+    }
 
 }
+
+
+

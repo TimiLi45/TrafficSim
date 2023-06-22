@@ -21,6 +21,12 @@ public class Street
     Node startNode;
     Node endNode;
 
+  
+    public List<Vector3> WayPoints
+    {
+        get { return wayPoints; }
+    }
+
     public int StreetID
     {
         get { return streetID; }
@@ -33,9 +39,10 @@ public class Street
     {
         get { return endNode; }
     }
-    public Street(TrafficManager _trafficManager ,Vector3 startPoint, Vector3 endPoint) {
+    public Street(TrafficManager _trafficManager, Vector3 startPoint, Vector3 endPoint)
+    {
         this._trafficManager = _trafficManager;
-        this.startPoint = startPoint;   
+        this.startPoint = startPoint;
         this.endPoint = endPoint;
 
         streetID = currentStreetID++;
@@ -73,7 +80,7 @@ public class Street
         {
             startNode = null;
         }
-        if(endNode.Connetions.Count <= 1)
+        if (endNode.Connetions.Count <= 1)
         {
             endNode = null;
         }
