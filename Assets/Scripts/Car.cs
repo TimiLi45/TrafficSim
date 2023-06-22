@@ -189,21 +189,21 @@ public class Car : MonoBehaviour
 
     private Street FindStreetOnCurrentStreet()
     {
-        List<Street> verf�gbareStra�en = new List<Street>();
+        List<Street> availableStreet = new List<Street>();
 
         foreach (Connection connection in currentStreet.EndNode.Connetions)
         {
             if (connection.ConnectedStreet.StreetID != currentStreet.StreetID)
             {
-                verf�gbareStra�en.Add(connection.ConnectedStreet);
+                availableStreet.Add(connection.ConnectedStreet);
             }
         }
 
-        if (verf�gbareStra�en.Count > 0)
+        if (availableStreet.Count > 0)
         {
             Random random = new();
-            int randomIndex = random.Next(0, verf�gbareStra�en.Count);
-            return verf�gbareStra�en[randomIndex];
+            int randomIndex = random.Next(0, availableStreet.Count);
+            return availableStreet[randomIndex];
         }
         return null;
     }
