@@ -12,12 +12,13 @@ public class Node
 
     private static int currentNodeID = 0;
 
-
     int nodeID;
 
     List<Connection> connections;
 
     Vector3 position;
+
+    GameObject sphere;
 
     public int NodeID
     {
@@ -38,7 +39,7 @@ public class Node
         this.trafficManager = trafficManager;
         nodeID = currentNodeID++;
         this.position = position;
-        GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         sphere.transform.position = position;
         sphere.layer = LayerMask.NameToLayer("Ignore Raycast");
         sphere.name = "node";
@@ -47,9 +48,10 @@ public class Node
     public void MakeConnection(Node node, Street connectedStreet)
     {
         connections.Add(new Connection(Vector3.Distance(this.position, node.Position), node, connectedStreet));
-        GameObject connectionLine = new GameObject();
-        LineRenderer renderedLine = connectionLine.AddComponent<LineRenderer>();
-        renderedLine.SetPosition(0, this.position);
-        renderedLine.SetPosition(1, node.Position);
+    }
+
+    public void DeleteSphere()
+    {
+        UnityEngine.Object.Destroy(sphere);
     }
 }
