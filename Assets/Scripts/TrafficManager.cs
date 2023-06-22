@@ -67,8 +67,7 @@ public class TrafficManager : MonoBehaviour
 
     public void DeleteStreet(Street street)
     {
-        street.DeleteLine();
-        street.DeleteNodes();
+        street.DeleteStreetContents();
         streetList.Remove(street);
     }
 

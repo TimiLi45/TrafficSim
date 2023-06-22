@@ -95,48 +95,19 @@ public class Street
 
     private void DetectIntersectionsInArea()
     {
-        /*
-        List<Vector3> intersections = new List<Vector3>();
-        List<Street> streets = new List<Street>();
-        bool doBreak = false;
         foreach (Street street in _trafficManager.StreetList)
         {
-            foreach (Vector3 wayPoint in street.WayPoints)
-            {
-                foreach(Vector3 thisWayPoint in wayPoints)
-                {
-                    if (Vector3.Distance(wayPoint, thisWayPoint) <= .2f)
-                    {
-                        intersections.Add(wayPoint);
-                        streets.Add(street);
-                        doBreak = true;
-                        break;
-                    }
-                }
-                if (doBreak)
-                {
-                    doBreak = false;
-                    break;
-                }
-            }
-        }
-        for(int i = 0; i < streets.Count; i++)
-        {
-            _trafficManager.GenerateIntersection(this, streets[i], intersections[i]);
-        }*/
-        Vector3 intersection;
-        Street selectedStreet;
-        foreach (Street street in _trafficManager.StreetList)
-        {
+            if(street.Equals(this)) continue;
             foreach (Vector3 wayPoint in street.WayPoints)
             {
                 foreach (Vector3 thisWayPoint in wayPoints)
                 {
-                    if (Vector3.Distance(wayPoint, thisWayPoint) <= .2f)
+                    if (Vector3.Distance(wayPoint, thisWayPoint) <= .2f && 
+                        !_trafficManager.IsInDistance(wayPoint, startPoint, 2f) && 
+                        !_trafficManager.IsInDistance(wayPoint, endPoint, 2f))
                     {
-                        intersection = wayPoint;
-                        selectedStreet = street;
-                        _trafficManager.GenerateIntersection(this, selectedStreet, intersection);
+                        Debug.Log("Connecting "+this.streetID+" and " + street.StreetID + " at " + wayPoint);
+                        _trafficManager.GenerateIntersection(this, street, wayPoint);
                         return;
                     }
                 }
@@ -144,20 +115,28 @@ public class Street
         }
     }
 
-    public void DeleteNodes()
+    public void DeleteStreetContents()
     {
-        if (startNode.Connetions.Count <= 1)
+        DeleteWayPoints();
+        DeleteNodes();
+        DeleteLine();
+    }
+    private void DeleteNodes()
+    {
+        if (startNode.Connections.Count <= 1)
         {
             startNode.DeleteSphere();
         }
-        if (endNode.Connetions.Count <= 1)
+        if (endNode.Connections.Count <= 1)
         {
             endNode.DeleteSphere();
         }
     }
-
-
-    public void DeleteLine()
+    private void DeleteWayPoints()
+    {
+        wayPoints.Clear();
+    }
+    private void DeleteLine()
     {
         UnityEngine.Object.Destroy(streetLine);
     }

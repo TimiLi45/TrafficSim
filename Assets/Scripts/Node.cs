@@ -24,7 +24,7 @@ public class Node
     {
         get { return nodeID; }
     }
-    public List<Connection> Connetions
+    public List<Connection> Connections
     {
         get { return connections; }
 
@@ -53,5 +53,10 @@ public class Node
     public void DeleteSphere()
     {
         UnityEngine.Object.Destroy(sphere);
+    }
+
+    public void DeleteConnection(Connection connection)
+    {
+        connections.Remove(connection);
     }
 }

@@ -54,9 +54,9 @@ public class Car : MonoBehaviour
         }
         _trafficManager = trafficManager;
 
-        if (startNode.Connetions[0].ConnectedStreet != null)
+        if (startNode.Connections[0].ConnectedStreet != null)
         {
-            currentStreet = startNode.Connetions[0].ConnectedStreet;
+            currentStreet = startNode.Connections[0].ConnectedStreet;
             transform.position = currentStreet.StartNode.Position;
             targetLocation = currentStreet.EndNode.Position;
         }
@@ -191,7 +191,7 @@ public class Car : MonoBehaviour
     {
         List<Street> availableStreet = new List<Street>();
 
-        foreach (Connection connection in currentStreet.EndNode.Connetions)
+        foreach (Connection connection in currentStreet.EndNode.Connections)
         {
             if (connection.ConnectedStreet.StreetID != currentStreet.StreetID)
             {
