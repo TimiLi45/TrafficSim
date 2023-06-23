@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
@@ -30,10 +31,10 @@ public class TrafficManager : MonoBehaviour
         get { return streetList; }
     }
 
-    public void AddStreet(Vector3 startPoint, Vector3 endPoint)
+    public void AddStreet(Vector3 startPoint, Vector3 endPoint, bool doGenerateIntersections = true)
     {
         GameObject street = new GameObject("Street");
-        street.AddComponent<Street>().GetData(this, startPoint, endPoint);
+        street.AddComponent<Street>().GetData(this, startPoint, endPoint, doGenerateIntersections);
         street.transform.SetParent(transform.Find("Streets").transform, true);
         streetList.Add(street);
     }
@@ -61,19 +62,57 @@ public class TrafficManager : MonoBehaviour
 
     public void GenerateIntersection(GameObject firstStreet, GameObject secondStreet, Vector3 intersectionPosition)
     {
-        DeleteStreet(firstStreet);
-        DeleteStreet(secondStreet);
-        AddStreet(firstStreet.GetComponent<Street>().StartNode.GetComponent<Node>().Position, intersectionPosition);
-        AddStreet(firstStreet.GetComponent<Street>().EndNode.GetComponent<Node>().Position, intersectionPosition);
-        AddStreet(secondStreet.GetComponent<Street>().StartNode.GetComponent<Node>().Position, intersectionPosition);
-        AddStreet(secondStreet.GetComponent<Street>().EndNode.GetComponent<Node>().Position, intersectionPosition);
+        AddStreet(firstStreet.GetComponent<Street>().StartNode.GetComponent<Node>().Position, intersectionPosition, false);
+        AddStreet(firstStreet.GetComponent<Street>().EndNode.GetComponent<Node>().Position, intersectionPosition, false);
+        AddStreet(secondStreet.GetComponent<Street>().StartNode.GetComponent<Node>().Position, intersectionPosition, false);
+        AddStreet(secondStreet.GetComponent<Street>().EndNode.GetComponent<Node>().Position, intersectionPosition, false);
+        /*
+        GameObject middleNode = new GameObject("Node");
+        middleNode.AddComponent<Node>().GetData(this, intersectionPosition);
+        middleNode.transform.SetParent(gameObject.transform.Find("Nodes").transform, true);
+
+
+        GameObject streetA = new GameObject("Street");
+        GameObject streetB = new GameObject("Street");
+        GameObject streetC = new GameObject("Street");
+        GameObject streetD = new GameObject("Street");
+
+        streetA.AddComponent<Street>().ConnectNodesWithNewStreet(this, firstStreet.GetComponent<Street>().StartNode, middleNode);
+        streetB.AddComponent<Street>().ConnectNodesWithNewStreet(this, firstStreet.GetComponent<Street>().EndNode, middleNode);
+        streetC.AddComponent<Street>().ConnectNodesWithNewStreet(this, secondStreet.GetComponent<Street>().StartNode, middleNode);
+        streetD.AddComponent<Street>().ConnectNodesWithNewStreet(this, secondStreet.GetComponent<Street>().EndNode, middleNode);
+
+        streetA.transform.SetParent(transform.Find("Streets").transform, true);
+        streetB.transform.SetParent(transform.Find("Streets").transform, true);
+        streetC.transform.SetParent(transform.Find("Streets").transform, true);
+        streetD.transform.SetParent(transform.Find("Streets").transform, true);
+
+        streetList.Add(streetA);
+        streetList.Add(streetB);
+        streetList.Add(streetC);
+        streetList.Add(streetD);
+        */
+        DeleteStreet(firstStreet, false);
+        DeleteStreet(secondStreet, false);
     }
 
-    public void DeleteStreet(GameObject street)
+    public void DeleteStreet(GameObject street, bool doDeleteNodes = false)
     {
-        street.GetComponent<Street>().DeleteStreetContents();
-        streetList.Remove(street);
+        street.GetComponent<Street>().DeleteStreetContents(doDeleteNodes);
+        Debug.Log("------------");
+        for(int i  = 0; i < streetList.Count; i++)
+        {
+            Debug.Log(streetList[i].GetComponent<Street>().StreetID);
+        }
+        Debug.Log("list count before " + streetList.Count);
+        streetList.RemoveAll(streetThis => streetThis.GetComponent<Street>().StreetID == street.GetComponent<Street>().StreetID);
         Destroy(street);
+        Debug.Log("delted item "+street.GetComponent<Street>().StreetID);
+        Debug.Log("list count afer "+streetList.Count);
+        for (int i = 0; i < streetList.Count; i++)
+        {
+            Debug.Log(streetList[i].GetComponent<Street>().StreetID);
+        }
     }
 
     public GameObject FindNodeWithPosition(Vector3 Position)

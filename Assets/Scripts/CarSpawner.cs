@@ -11,7 +11,6 @@ public class CarSpawner  : MonoBehaviour
 {
     GameObject trafficManager;
     Node connectedNode;
-    bool active = false;
     Vector3 position;
     private float timeRemaining = 3;
 
