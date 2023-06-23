@@ -15,7 +15,7 @@ public class TrafficManager : MonoBehaviour
     [SerializeField]
     float wayPointSphereSize = .2f;
 
-    List<Street> streetList = new();
+    List<GameObject> streetList = new();
 
     public float WayPointDistance
     {
@@ -25,26 +25,30 @@ public class TrafficManager : MonoBehaviour
     {
         get { return wayPointSphereSize; }
     }
-    public List<Street> StreetList
+    public List<GameObject> StreetList
     {
         get { return streetList; }
     }
 
     public void AddStreet(Vector3 startPoint, Vector3 endPoint)
     {
-        streetList.Add(new Street(this, startPoint, endPoint));
+        GameObject street = new GameObject("Street");
+        street.AddComponent<Street>().GetData(this, startPoint, endPoint);
+        street.transform.SetParent(transform.Find("Streets").transform, true);
+        streetList.Add(street);
     }
 
     public void AddCarSpawner(Vector3 position)
     {
         bool found = false;
-        foreach (Street street in StreetList)
+        foreach (GameObject street in StreetList)
         {
-            if (IsInDistance(position, street.StartNode.Position, 5f))
+            if (IsInDistance(position, street.GetComponent<Street>().StartNode.GetComponent<Node>().Position, 5f))
             {
                 GameObject carSpawner = new GameObject();
-                carSpawner.AddComponent<CarSpawner>().GetData(this, position);
+                carSpawner.AddComponent<CarSpawner>().GetData(gameObject, position);
                 carSpawner.name = "CarSpawner";
+                carSpawner.transform.SetParent(transform.Find("CarSpawner").transform, true);
                 found = true;
                 return;
             }
@@ -55,37 +59,38 @@ public class TrafficManager : MonoBehaviour
         }
     }
 
-    public void GenerateIntersection(Street firstStreet, Street secondStreet, Vector3 intersectionPosition)
+    public void GenerateIntersection(GameObject firstStreet, GameObject secondStreet, Vector3 intersectionPosition)
     {
         DeleteStreet(firstStreet);
         DeleteStreet(secondStreet);
-        streetList.Add(new Street(this, firstStreet.StartNode.Position, intersectionPosition));
-        streetList.Add(new Street(this, firstStreet.EndNode.Position, intersectionPosition));
-        streetList.Add(new Street(this, secondStreet.StartNode.Position, intersectionPosition));
-        streetList.Add(new Street(this, secondStreet.EndNode.Position, intersectionPosition));
+        AddStreet(firstStreet.GetComponent<Street>().StartNode.GetComponent<Node>().Position, intersectionPosition);
+        AddStreet(firstStreet.GetComponent<Street>().EndNode.GetComponent<Node>().Position, intersectionPosition);
+        AddStreet(secondStreet.GetComponent<Street>().StartNode.GetComponent<Node>().Position, intersectionPosition);
+        AddStreet(secondStreet.GetComponent<Street>().EndNode.GetComponent<Node>().Position, intersectionPosition);
     }
 
-    public void DeleteStreet(Street street)
+    public void DeleteStreet(GameObject street)
     {
-        street.DeleteStreetContents();
+        street.GetComponent<Street>().DeleteStreetContents();
         streetList.Remove(street);
+        Destroy(street);
     }
 
-    public Node FindNodeWithPosition(Vector3 Position)
+    public GameObject FindNodeWithPosition(Vector3 Position)
     {
-        foreach (Street street in streetList)
+        foreach (GameObject street in streetList)
         {
-            if (IsInDistance(street.StartNode.Position, Position, nodeMergeDistance))
-                return street.StartNode;
-            if (IsInDistance(street.EndNode.Position, Position, nodeMergeDistance))
-                return street.EndNode;
+            if (IsInDistance(street.GetComponent<Street>().StartNode.GetComponent<Node>().Position, Position, nodeMergeDistance))
+                return street.GetComponent<Street>().StartNode;
+            if (IsInDistance(street.GetComponent<Street>().EndNode.GetComponent<Node>().Position, Position, nodeMergeDistance))
+                return street.GetComponent<Street>().EndNode;
         }
         return null;
     }
 
-    public bool IsNodeOnStreet(Node node, Street street)
+    public bool IsNodeOnStreet(GameObject node, GameObject street)
     {
-        return (Math.Abs(Vector3.Distance(street.StartNode.Position, node.Position)) + Math.Abs(Vector3.Distance(street.EndNode.Position, node.Position))) == Math.Abs(Vector3.Distance(street.StartNode.Position, street.EndNode.Position));
+        return (Math.Abs(Vector3.Distance(street.GetComponent<Street>().StartNode.GetComponent<Node>().Position, node.GetComponent<Node>().Position)) + Math.Abs(Vector3.Distance(street.GetComponent<Street>().EndNode.GetComponent<Node>().Position, node.GetComponent<Node>().Position))) == Math.Abs(Vector3.Distance(street.GetComponent<Street>().StartNode.GetComponent<Node>().Position, street.GetComponent<Street>().EndNode.GetComponent<Node>().Position));
     }
 
     public bool IsInDistance(Vector3 a, Vector3 b, float distance)
@@ -97,7 +102,6 @@ public class TrafficManager : MonoBehaviour
 
     public void DeleteCarSpawner(CarSpawner carSpawner)
     {
-        carSpawner = null;
+        Destroy(carSpawner);
     }
-
 }

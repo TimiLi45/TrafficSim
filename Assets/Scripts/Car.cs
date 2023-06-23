@@ -18,7 +18,7 @@ using Random = System.Random;
 
 public class Car : MonoBehaviour
 {
-    TrafficManager _trafficManager = null;
+    GameObject trafficManager;
     enum Verhalten
     {
         none,
@@ -45,20 +45,20 @@ public class Car : MonoBehaviour
     List<Vector3> Waypoints = new List<Vector3>();
     Street currentStreet;
 
-    public void GetData(TrafficManager trafficManager, Node startNode)
+    public void GetData(GameObject trafficManager, Node startNode)
     {
 
         if (startNode == null)
         {
             DeletCar();
         }
-        _trafficManager = trafficManager;
+        this.trafficManager = trafficManager;
 
-        if (startNode.Connections[0].ConnectedStreet != null)
+        if (startNode.ConnectedStreets[0].GetComponent<Street>() != null)
         {
-            currentStreet = startNode.Connections[0].ConnectedStreet;
-            transform.position = currentStreet.StartNode.Position;
-            targetLocation = currentStreet.EndNode.Position;
+            currentStreet = startNode.ConnectedStreets[0].GetComponent<Street>();
+            transform.position = currentStreet.StartNode.GetComponent<Node>().Position;
+            targetLocation = currentStreet.EndNode.GetComponent<Node>().Position;
         }
         else
         {
@@ -108,8 +108,8 @@ public class Car : MonoBehaviour
         {
             if (currentStreet != null)
             {
-                Waypoints.Add(currentStreet.StartNode.Position);
-                Waypoints.Add(currentStreet.EndNode.Position);
+                Waypoints.Add(currentStreet.StartNode.GetComponent<Node>().Position);
+                Waypoints.Add(currentStreet.EndNode.GetComponent<Node>().Position);
                 currentStreet = FindStreetOnCurrentStreet();
             }
             else
@@ -125,8 +125,8 @@ public class Car : MonoBehaviour
         else
         {
             Waypoints.Clear();
-            Waypoints.Add(currentStreet.StartNode.Position);
-            Waypoints.Add(currentStreet.EndNode.Position);
+            Waypoints.Add(currentStreet.StartNode.GetComponent<Node>().Position);
+            Waypoints.Add(currentStreet.EndNode.GetComponent<Node>().Position);
         }
     }
 
@@ -185,17 +185,19 @@ public class Car : MonoBehaviour
     private void AddMesh()
     {
         cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        cube.name = "CarCube";
+        cube.transform.parent = gameObject.transform;
     }
 
     private Street FindStreetOnCurrentStreet()
     {
         List<Street> availableStreet = new List<Street>();
 
-        foreach (Connection connection in currentStreet.EndNode.Connections)
+        foreach (Street connectedStreet in currentStreet.EndNode.GetComponent<Node>().ConnectedStreets)
         {
-            if (connection.ConnectedStreet.StreetID != currentStreet.StreetID)
+            if (connectedStreet.GetComponent<Street>().StreetID != currentStreet.StreetID)
             {
-                availableStreet.Add(connection.ConnectedStreet);
+                availableStreet.Add(connectedStreet.GetComponent<Street>());
             }
         }
 
