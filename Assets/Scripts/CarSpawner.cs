@@ -9,20 +9,22 @@ using Debug = UnityEngine.Debug;
 
 public class CarSpawner  : MonoBehaviour 
 {
-    TrafficManager trafficManager;
+    GameObject trafficManager;
     Node connectedNode;
     bool active = false;
     Vector3 position;
     private float timeRemaining = 3;
 
-    public void GetData(TrafficManager trafficManager, Vector3 position)
+    public void GetData(GameObject trafficManager, Vector3 position)
     {
         this.trafficManager = trafficManager;
         this.position = position;
 
-        connectedNode = trafficManager.FindNodeWithPosition(position);
+        connectedNode = trafficManager.GetComponent<TrafficManager>().FindNodeWithPosition(position).GetComponent<Node>();
         GameObject cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         cylinder.transform.position = connectedNode.Position;
+        cylinder.name = "CarSpawnerCylinder";
+        cylinder.transform.parent = gameObject.transform;
     }
 
 
@@ -44,5 +46,6 @@ public class CarSpawner  : MonoBehaviour
     {
         GameObject car = new GameObject("Car");
         car.AddComponent<Car>().GetData(trafficManager, connectedNode);
+        car.transform.SetParent(trafficManager.transform.Find("Cars"), true);
     }
 }

@@ -6,7 +6,7 @@ using UnityEditor.MemoryProfiler;
 using UnityEngine;
 using UnityEngine.InputSystem.HID;
 
-public class Node
+public class Node : MonoBehaviour
 {
     TrafficManager trafficManager;
 
@@ -14,7 +14,7 @@ public class Node
 
     int nodeID;
 
-    List<Connection> connections;
+    List<Street> connectedStreets;
 
     Vector3 position;
 
@@ -24,34 +24,40 @@ public class Node
     {
         get { return nodeID; }
     }
-    public List<Connection> Connetions
+    public List<Street> ConnectedStreets
     {
-        get { return connections; }
+        get { return connectedStreets; }
 
     }
     public Vector3 Position
     {
         get { return position; }
     }
-    public Node(TrafficManager trafficManager ,Vector3 position)
+    public void GetData(TrafficManager trafficManager ,Vector3 position)
     {
-        connections = new List<Connection>();
+        connectedStreets = new List<Street>();
         this.trafficManager = trafficManager;
         nodeID = currentNodeID++;
         this.position = position;
         sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         sphere.transform.position = position;
         sphere.layer = LayerMask.NameToLayer("Ignore Raycast");
-        sphere.name = "node";
+        sphere.name = "NodeSphere";
+        sphere.transform.parent = gameObject.transform;
     }
 
-    public void MakeConnection(Node node, Street connectedStreet)
+    public void AddConnectedStreet(Street connectedStreet)
     {
-        connections.Add(new Connection(Vector3.Distance(this.position, node.Position), node, connectedStreet));
+        connectedStreets.Add(connectedStreet);
     }
 
     public void DeleteSphere()
     {
-        UnityEngine.Object.Destroy(sphere);
+        Destroy(sphere);
+    }
+
+    public void DeleteConnection(Street connectedStreet)
+    {
+        connectedStreets.Remove(connectedStreet);
     }
 }

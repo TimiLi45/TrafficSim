@@ -17,7 +17,7 @@ public class InteractionManager : MonoBehaviour
 
     void Awake()
     {
-        trafficManager = this.GetComponent<TrafficManager>();
+        trafficManager = gameObject.GetComponent<TrafficManager>();
     }
 
     void Start()
@@ -44,9 +44,9 @@ public class InteractionManager : MonoBehaviour
 
         if(renderingWaypoints) return;
         renderingWaypoints = true;
-        foreach (Street street in trafficManager.StreetList)
+        foreach (GameObject street in trafficManager.StreetList)
         {
-            foreach (Vector3 wayPoint in street.WayPoints)
+            foreach (Vector3 wayPoint in street.GetComponent<Street>().WayPoints)
             {
                 GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 sphere.transform.localScale = new(trafficManager.WayPointSphereSize, trafficManager.WayPointSphereSize, trafficManager.WayPointSphereSize);
