@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
@@ -16,6 +17,7 @@ public class TrafficManager : MonoBehaviour
     float wayPointSphereSize = .2f;
 
     List<GameObject> streetList = new();
+    List<GameObject> carSpawnerList = new();
 
     public float WayPointDistance
     {
@@ -36,6 +38,7 @@ public class TrafficManager : MonoBehaviour
         street.AddComponent<Street>().GetData(this, startPoint, endPoint);
         street.transform.SetParent(transform.Find("Streets").transform, true);
         streetList.Add(street);
+        DetectAndGenerateIntersectionsOnStreet(street.GetComponent<Street>());
     }
 
     public void AddCarSpawner(Vector3 position)
@@ -49,6 +52,7 @@ public class TrafficManager : MonoBehaviour
                 carSpawner.AddComponent<CarSpawner>().GetData(gameObject, position);
                 carSpawner.name = "CarSpawner";
                 carSpawner.transform.SetParent(transform.Find("CarSpawner").transform, true);
+                carSpawnerList.Add(carSpawner);
                 found = true;
                 return;
             }
@@ -58,21 +62,45 @@ public class TrafficManager : MonoBehaviour
             Debug.Log("No Location Found for Car Spawner");
         }
     }
+    public void DetectAndGenerateIntersectionsOnStreet(Street streetToSearch)
+    {
+        foreach (GameObject street in streetList)
+        {
+            if (street.Equals(streetToSearch.gameObject)) continue;
+            foreach (Vector3 wayPoint in street.GetComponent<Street>().WayPoints)
+            {
+                foreach (Vector3 thisWayPoint in streetToSearch.WayPoints)
+                {
+                    if (Vector3.Distance(wayPoint, thisWayPoint) <= .2f &&
+                        !IsInDistance(wayPoint, streetToSearch.StartPoint, 2f) &&
+                        !IsInDistance(wayPoint, streetToSearch.EndPoint, 2f))
+                    {
+                        GenerateIntersection(streetToSearch.gameObject, street, wayPoint);
+                        return;
+                    }
+                }
+            }
+        }
+    }
 
     public void GenerateIntersection(GameObject firstStreet, GameObject secondStreet, Vector3 intersectionPosition)
     {
-        DeleteStreet(firstStreet);
-        DeleteStreet(secondStreet);
-        AddStreet(firstStreet.GetComponent<Street>().StartNode.GetComponent<Node>().Position, intersectionPosition);
-        AddStreet(firstStreet.GetComponent<Street>().EndNode.GetComponent<Node>().Position, intersectionPosition);
-        AddStreet(secondStreet.GetComponent<Street>().StartNode.GetComponent<Node>().Position, intersectionPosition);
-        AddStreet(secondStreet.GetComponent<Street>().EndNode.GetComponent<Node>().Position, intersectionPosition);
+        Vector3 positionA = firstStreet.GetComponent<Street>().StartNode.GetComponent<Node>().Position;
+        Vector3 positionB = firstStreet.GetComponent<Street>().EndNode.GetComponent<Node>().Position;
+        Vector3 positionC = secondStreet.GetComponent<Street>().StartNode.GetComponent<Node>().Position;
+        Vector3 positionD = secondStreet.GetComponent<Street>().EndNode.GetComponent<Node>().Position;
+        DeleteStreet(firstStreet, false);
+        DeleteStreet(secondStreet, false);
+        AddStreet(positionA, intersectionPosition);
+        AddStreet(positionB, intersectionPosition);
+        AddStreet(positionC, intersectionPosition);
+        AddStreet(positionD, intersectionPosition);
     }
 
-    public void DeleteStreet(GameObject street)
+    public void DeleteStreet(GameObject street, bool doDeleteNodes = false)
     {
-        street.GetComponent<Street>().DeleteStreetContents();
-        streetList.Remove(street);
+        street.GetComponent<Street>().DeleteStreetContents(doDeleteNodes);
+        streetList.RemoveAll(streetThis => streetThis.Equals(street));
         Destroy(street);
     }
 
