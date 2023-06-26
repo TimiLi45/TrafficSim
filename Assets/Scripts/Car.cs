@@ -59,22 +59,23 @@ public class Car : MonoBehaviour
     public void GetData(GameObject trafficManager, Node startNode)
     {
 
-        if (startNode == null)
-        {
-            DeleteCar();
-        }
+        if (startNode == null) DeleteCar();
         this.trafficManager = trafficManager;
 
-        if (startNode.ConnectedStreets[0].GetComponent<Street>() != null)
+        for(int i = 0; i < startNode.ConnectedStreets.Count; i++)
         {
-            currentStreet = startNode.ConnectedStreets[0].GetComponent<Street>();
-            transform.position = currentStreet.StartNode.GetComponent<Node>().Position;
-            targetLocation = currentStreet.EndNode.GetComponent<Node>().Position;
+            if (startNode.ConnectedStreets[i] != null)
+            {
+                currentStreet = startNode.ConnectedStreets[i];
+                if(currentStreet.StartNode.GetComponent<Node>().Equals(startNode))
+                {
+                    transform.position = currentStreet.StartNode.GetComponent<Node>().Position;
+                    targetLocation = currentStreet.EndNode.GetComponent<Node>().Position;
+                    break;
+                }
+            }
         }
-        else
-        {
-            DeleteCar();
-        }
+        if (currentStreet == null) DeleteCar();
         AddMesh();
         _verhalten = Verhalten.drive;
     }
@@ -99,8 +100,10 @@ public class Car : MonoBehaviour
 
         //Sp�ter durch model ersetzen
         if (cube != null)
+        {
             cube.transform.position = transform.position;
             boxCollider.transform.position = transform.position;
+        }
 
 
         transform.position = Vector3.MoveTowards(transform.position, targetLocation, speed * Time.deltaTime);
@@ -127,7 +130,7 @@ public class Car : MonoBehaviour
             currentStreet = FindStreetOnCurrentStreet();
             if (currentStreet == lastStreet)
             {
-                DeletCar();
+                DeleteCar();
             }
             visitedStreets.Add(currentStreet);
             if (currentStreet != null)
@@ -136,7 +139,7 @@ public class Car : MonoBehaviour
                 currentEndNode = currentStreet.EndNode.GetComponent<Node>();
                 if (currentStreet == lastStreet)
                 {
-                    DeletCar();
+                    DeleteCar();
                 }
 
             }
@@ -219,7 +222,7 @@ public class Car : MonoBehaviour
         cube.transform.parent = gameObject.transform;
         boxCollider = this.AddComponent<BoxCollider>();
         this.AddComponent<Rigidbody>();
-
+        cube.GetComponent<Renderer>().material.color = UnityEngine.Random.ColorHSV();
     }
 
     private Street FindStreetOnCurrentStreet()

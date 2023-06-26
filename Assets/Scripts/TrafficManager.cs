@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Runtime.CompilerServices;
 using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
@@ -31,7 +32,10 @@ public class TrafficManager : MonoBehaviour
     {
         get { return streetList; }
     }
-
+    public List<GameObject> CarSpawnerList
+    {
+        get { return carSpawnerList;}
+    }
     public void AddStreet(Vector3 startPoint, Vector3 endPoint)
     {
         GameObject street = new GameObject("Street");
@@ -43,10 +47,11 @@ public class TrafficManager : MonoBehaviour
 
     public void AddCarSpawner(Vector3 position)
     {
+        if (FindCarSpawnerInRange(position, nodeMergeDistance) != null) return;
         bool found = false;
         foreach (GameObject street in StreetList)
         {
-            if (IsInDistance(position, street.GetComponent<Street>().StartNode.GetComponent<Node>().Position, 5f))
+            if (IsInDistance(position, street.GetComponent<Street>().StartNode.GetComponent<Node>().Position, nodeMergeDistance))
             {
                 GameObject carSpawner = new GameObject();
                 carSpawner.AddComponent<CarSpawner>().GetData(gameObject, position);
@@ -116,6 +121,24 @@ public class TrafficManager : MonoBehaviour
         return null;
     }
 
+    public GameObject FindCarSpawnerInRange(Vector3 Position, float range)
+    {
+        foreach (GameObject carSpawner in carSpawnerList)
+        {
+            if (IsInDistance(carSpawner.GetComponent<CarSpawner>().Position,Position,range)) return carSpawner;
+        }
+        return null;
+    }
+
+    public GameObject FindCarSpawnerWithPosition(Vector3 Position)
+    {
+        foreach (GameObject carSpawner in carSpawnerList)
+        {
+            if (carSpawner.GetComponent<CarSpawner>().Position == Position) return carSpawner;
+        }
+        return null;
+    }
+
     public bool IsNodeOnStreet(GameObject node, GameObject street)
     {
         return (Math.Abs(Vector3.Distance(street.GetComponent<Street>().StartNode.GetComponent<Node>().Position, node.GetComponent<Node>().Position)) + Math.Abs(Vector3.Distance(street.GetComponent<Street>().EndNode.GetComponent<Node>().Position, node.GetComponent<Node>().Position))) == Math.Abs(Vector3.Distance(street.GetComponent<Street>().StartNode.GetComponent<Node>().Position, street.GetComponent<Street>().EndNode.GetComponent<Node>().Position));
@@ -130,6 +153,6 @@ public class TrafficManager : MonoBehaviour
 
     public void DeleteCarSpawner(CarSpawner carSpawner)
     {
-        Destroy(carSpawner);
+        Destroy(carSpawner.gameObject);
     }
 }

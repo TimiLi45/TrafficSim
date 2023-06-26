@@ -36,7 +36,7 @@ public class InteractionManager : MonoBehaviour
         {
             foreach (GameObject sphere in wayPointSpheres)
             {
-                GameObject.Destroy(sphere);
+                Destroy(sphere);
             }
             renderingWaypoints = false;
             return;
@@ -52,6 +52,7 @@ public class InteractionManager : MonoBehaviour
                 sphere.transform.localScale = new(trafficManager.WayPointSphereSize, trafficManager.WayPointSphereSize, trafficManager.WayPointSphereSize);
                 sphere.transform.position = wayPoint;
                 sphere.layer = LayerMask.NameToLayer("Ignore Raycast");
+                sphere.GetComponent<SphereCollider>().enabled = false;
                 wayPointSpheres.Add(sphere);
             }
         }
