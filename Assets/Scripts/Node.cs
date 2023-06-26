@@ -44,6 +44,7 @@ public class Node : MonoBehaviour
         sphere.layer = LayerMask.NameToLayer("Ignore Raycast");
         sphere.name = "NodeSphere";
         sphere.transform.parent = gameObject.transform;
+        sphere.GetComponent<SphereCollider>().enabled = false;
     }
 
     public void AddConnectedStreet(Street connectedStreet)
@@ -56,7 +57,7 @@ public class Node : MonoBehaviour
         Destroy(sphere);
     }
 
-    public void DeleteConnection(Street connectedStreet)
+    public void RemoveConnectedStreet(Street connectedStreet)
     {
         connectedStreets.Remove(connectedStreet);
     }

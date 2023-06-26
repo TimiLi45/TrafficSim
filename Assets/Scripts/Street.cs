@@ -113,8 +113,8 @@ public class Street : MonoBehaviour
     public void DeleteStreetContents(bool doDeleteNodes)
     {
         DeleteWayPoints();
-        startNode.GetComponent<Node>().DeleteConnection(this);
-        endNode.GetComponent<Node>().DeleteConnection(this);
+        startNode.GetComponent<Node>().RemoveConnectedStreet(this);
+        endNode.GetComponent<Node>().RemoveConnectedStreet(this);
         if (doDeleteNodes)DeleteNodes();
         DeleteLine();
     }
