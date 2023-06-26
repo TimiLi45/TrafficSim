@@ -49,6 +49,8 @@ public class CarSpawner  : MonoBehaviour
 
     private void SpawnCar()
     {
+        if (connectedNode == null) return;
+        
         GameObject car = new GameObject("Car");
         car.AddComponent<Car>().GetData(trafficManager, connectedNode);
         car.transform.SetParent(trafficManager.transform.Find("Cars"), true);
