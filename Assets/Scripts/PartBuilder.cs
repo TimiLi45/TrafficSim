@@ -18,7 +18,7 @@ public enum BuildableTypes
 public class PartBuilder : MonoBehaviour
 {
     [SerializeField]
-    int minStreetLength = 2;
+    float minStreetLength = 1.5f;
 
     [SerializeField, HideInInspector]
     TrafficManager trafficManager;
