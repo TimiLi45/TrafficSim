@@ -3,59 +3,51 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Unity.VisualScripting;
 using UnityEngine;
+public enum TrafficSignTypes
+{
+    maxSpeed,
+    forceStreet,
+    stop
+}
 
 public class TrafficSign : MonoBehaviour
 {
+    [SerializeField]
+    int value = 0;
 
     [SerializeField]
-    int newMaxSpeed = 100;
-    [SerializeField]
-    int newStreet = -1;
+    TrafficSignTypes selectedType = TrafficSignTypes.maxSpeed;
 
-    enum Sign
+    public void GetData(TrafficSignTypes type, int value)
     {
-        maxSpeed,
-        forceStreet
+        selectedType = type;
+        this.value = value;
     }
-
-    [SerializeField]
-    Sign sign = Sign.maxSpeed;
 
     private void OnTriggerEnter(Collider collider)
     {
-        Car carComponente = collider.gameObject.GetComponent<Car>();
+        Car collidedCar = collider.gameObject.GetComponent<Car>();
+        if (collidedCar == null) return;
 
-        if (carComponente != null ) 
+        switch (selectedType)
         {
-           switch (sign){
-                case Sign.maxSpeed:
-                    carComponente.SetMaxSpeed(newMaxSpeed);
-                    break;
-                case Sign.forceStreet:
-                    carComponente.ForcesStreetID = newStreet;
-                    break;
-                    
-
-
-            }
-
+            case TrafficSignTypes.maxSpeed:
+                collidedCar.SetMaxSpeed(value);
+                break;
+            case TrafficSignTypes.forceStreet:
+                collidedCar.ForcesStreetID = value;
+                break;
+            case TrafficSignTypes.stop:
+                //collidedCar.Stop();
+                break;
+            //case TrafficSignTypes.dijkstra:
+            //    collidedCar.Dijkstra(nodeID);
+            //    break;
         }
-        
     }
-
-
-
-
-
-
 
     private void Start()
     {
         Collider[] colliders = GetComponentsInChildren<Collider>();
-
-        Debug.Log(colliders.Length);
-
-
-
     }
 }
