@@ -7,14 +7,40 @@ using UnityEngine;
 public class TrafficSign : MonoBehaviour
 {
 
-    private void OnCollisionEnter(Collision collision)
+    [SerializeField]
+    int newMaxSpeed = 100;
+    [SerializeField]
+    int newStreet = -1;
+
+    enum Sign
     {
-        Debug.Log("dada");
+        maxSpeed,
+        forceStreet
     }
+
+    [SerializeField]
+    Sign sign = Sign.maxSpeed;
 
     private void OnTriggerEnter(Collider collider)
     {
-        Debug.Log("adad");
+        Car carComponente = collider.gameObject.GetComponent<Car>();
+
+        if (carComponente != null ) 
+        {
+           switch (sign){
+                case Sign.maxSpeed:
+                    carComponente.SetMaxSpeed(newMaxSpeed);
+                    break;
+                case Sign.forceStreet:
+                    carComponente.ForcesStreetID = newStreet;
+                    break;
+                    
+
+
+            }
+
+        }
+        
     }
 
 

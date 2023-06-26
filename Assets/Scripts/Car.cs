@@ -34,12 +34,18 @@ public class Car : MonoBehaviour
 
     bool lastRound = false;
     float acceleration = .05f;
-    float deceleration = 0.05f;
+    float deceleration = 0.3f;
     float speed = 0f;
     float maxDistanceFront = 1f;
     int maxSpeed = 10;
     int currentListPosition = -1;
     int forcesStreetID = -1;
+    public int ForcesStreetID
+    {
+        get { return forcesStreetID; }
+        set { forcesStreetID = value; }
+    }
+
 
     Vector3 targetLocation;
     List<Vector3> Waypoints = new List<Vector3>();
@@ -99,9 +105,10 @@ public class Car : MonoBehaviour
 
         //Sp�ter durch model ersetzen
         if (cube != null)
+        {
             cube.transform.position = transform.position;
             boxCollider.transform.position = transform.position;
-
+        }
 
         transform.position = Vector3.MoveTowards(transform.position, targetLocation, speed * Time.deltaTime);
         if (Vector3.Distance(transform.position, targetLocation) < maxDistanceFront)
@@ -127,7 +134,7 @@ public class Car : MonoBehaviour
             currentStreet = FindStreetOnCurrentStreet();
             if (currentStreet == lastStreet)
             {
-                DeletCar();
+                DeleteCar();
             }
             visitedStreets.Add(currentStreet);
             if (currentStreet != null)
@@ -136,7 +143,7 @@ public class Car : MonoBehaviour
                 currentEndNode = currentStreet.EndNode.GetComponent<Node>();
                 if (currentStreet == lastStreet)
                 {
-                    DeletCar();
+                    DeleteCar();
                 }
 
             }
@@ -274,6 +281,11 @@ public class Car : MonoBehaviour
     {
         Destroy(this.gameObject);
         Destroy(cube);
+    }
+
+    public void SetMaxSpeed(int newMaxSpeed)
+    {
+        maxSpeed = newMaxSpeed;
     }
 
  
