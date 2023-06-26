@@ -17,6 +17,7 @@ public class TrafficManager : MonoBehaviour
     float wayPointSphereSize = .2f;
 
     List<GameObject> streetList = new();
+    List<GameObject> carSpawnerList = new();
 
     public float WayPointDistance
     {
@@ -51,6 +52,7 @@ public class TrafficManager : MonoBehaviour
                 carSpawner.AddComponent<CarSpawner>().GetData(gameObject, position);
                 carSpawner.name = "CarSpawner";
                 carSpawner.transform.SetParent(transform.Find("CarSpawner").transform, true);
+                carSpawnerList.Add(carSpawner);
                 found = true;
                 return;
             }

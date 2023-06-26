@@ -26,8 +26,6 @@ public class CarSpawner  : MonoBehaviour
         cylinder.transform.parent = gameObject.transform;
     }
 
-
-
     private void Update()
     {
         if (timeRemaining > 0)

@@ -65,22 +65,6 @@ public class Street : MonoBehaviour
         GenerateModel();
     }
 
-    public void ConnectNodesWithNewStreet(TrafficManager trafficManager, GameObject startNode, GameObject endNode)
-    {
-        this.trafficManager = trafficManager;
-        this.startNode = startNode;
-        this.endNode = endNode;
-        startPoint = this.startNode.GetComponent<Node>().Position;
-        endPoint = this.endNode.GetComponent<Node>().Position;
-
-        GenerateWayPoints(trafficManager.WayPointDistance, false, false);
-
-        startNode.GetComponent<Node>().AddConnectedStreet(this);
-        endNode.GetComponent<Node>().AddConnectedStreet(this);
-
-        GenerateModel();
-    }
-
     private void GenerateNodes(ref bool generateStartWayPoint, ref bool generateEndWayPoint)
     {
         if (trafficManager.FindNodeWithPosition(startPoint) == null)
@@ -100,7 +84,6 @@ public class Street : MonoBehaviour
             generateEndWayPoint = true;
         }
         else { endNode = trafficManager.FindNodeWithPosition(endPoint); }
-
         startNode.GetComponent<Node>().AddConnectedStreet(this);
         endNode.GetComponent<Node>().AddConnectedStreet(this);
     }
@@ -130,7 +113,9 @@ public class Street : MonoBehaviour
     public void DeleteStreetContents(bool doDeleteNodes)
     {
         DeleteWayPoints();
-        if(doDeleteNodes)DeleteNodes();
+        startNode.GetComponent<Node>().DeleteConnection(this);
+        endNode.GetComponent<Node>().DeleteConnection(this);
+        if (doDeleteNodes)DeleteNodes();
         DeleteLine();
     }
     private void DeleteNodes()
