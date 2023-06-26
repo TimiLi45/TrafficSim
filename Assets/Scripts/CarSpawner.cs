@@ -11,7 +11,6 @@ public class CarSpawner  : MonoBehaviour
 {
     GameObject trafficManager;
     Node connectedNode;
-    bool active = false;
     Vector3 position;
     private float timeRemaining = 3;
 
@@ -26,8 +25,6 @@ public class CarSpawner  : MonoBehaviour
         cylinder.name = "CarSpawnerCylinder";
         cylinder.transform.parent = gameObject.transform;
     }
-
-
 
     private void Update()
     {

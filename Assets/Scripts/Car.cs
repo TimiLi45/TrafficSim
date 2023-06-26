@@ -50,7 +50,7 @@ public class Car : MonoBehaviour
 
         if (startNode == null)
         {
-            DeletCar();
+            DeleteCar();
         }
         this.trafficManager = trafficManager;
 
@@ -62,7 +62,7 @@ public class Car : MonoBehaviour
         }
         else
         {
-            DeletCar();
+            DeleteCar();
         }
         AddMesh();
         _verhalten = Verhalten.drive;
@@ -96,13 +96,16 @@ public class Car : MonoBehaviour
         {
             NextWaypoint();
         }
+
+        if(currentStreet == null)
+            DeleteCar();
     }
 
     private void FindPath()
     {
         if (lastRound)
         {
-            DeletCar();
+            DeleteCar();
         }
         else
         {
@@ -114,7 +117,7 @@ public class Car : MonoBehaviour
             }
             else
             {
-                DeletCar();
+                DeleteCar();
             }
         }
 
@@ -210,7 +213,7 @@ public class Car : MonoBehaviour
         return null;
     }
 
-    private void DeletCar()
+    private void DeleteCar()
     {
         Destroy(this.gameObject);
         Destroy(cube);

@@ -25,6 +25,14 @@ public class Street : MonoBehaviour
     {
         get { return streetID; }
     }
+    public Vector3 StartPoint
+    {
+        get { return startPoint; }
+    }
+    public Vector3 EndPoint
+    {
+        get { return endPoint; }
+    }
     public List<Vector3> WayPoints
     {
         get { return wayPoints; }
@@ -45,26 +53,16 @@ public class Street : MonoBehaviour
         wayPoints = new List<Vector3>();
         streetLine = new GameObject();
         streetID = currentStreetID++;
-
         bool generateStartWayPoint = false;
         bool generateEndWayPoint = false;
 
         GenerateNodes(ref generateStartWayPoint, ref generateEndWayPoint);
-
         GenerateWayPoints(trafficManager.WayPointDistance, generateStartWayPoint, generateEndWayPoint);
 
         this.startPoint = startNode.GetComponent<Node>().Position;
         this.endPoint = endNode.GetComponent<Node>().Position;
 
-        startNode.GetComponent<Node>().AddConnectedStreet(this);
-        endNode.GetComponent<Node>().AddConnectedStreet(this);
-
-        LineRenderer renderedLine = streetLine.AddComponent<LineRenderer>();
-        renderedLine.SetPosition(0, this.startPoint);
-        renderedLine.SetPosition(1, this.endPoint);
-        renderedLine.name = "StreetLine";
-        streetLine.transform.parent = gameObject.transform;
-        DetectIntersectionsInArea();
+        GenerateModel();
     }
 
     private void GenerateNodes(ref bool generateStartWayPoint, ref bool generateEndWayPoint)
@@ -86,6 +84,8 @@ public class Street : MonoBehaviour
             generateEndWayPoint = true;
         }
         else { endNode = trafficManager.FindNodeWithPosition(endPoint); }
+        startNode.GetComponent<Node>().AddConnectedStreet(this);
+        endNode.GetComponent<Node>().AddConnectedStreet(this);
     }
 
     private void GenerateWayPoints(float spacing, bool generateStartWayPoint = true, bool generateEndWayPoint = true)
@@ -101,32 +101,21 @@ public class Street : MonoBehaviour
         if (generateEndWayPoint) wayPoints.Add(endPoint);
     }
 
-    private void DetectIntersectionsInArea()
+    private void GenerateModel()
     {
-        foreach (GameObject street in trafficManager.GetComponent<TrafficManager>().StreetList)
-        {
-            if(street.Equals(this)) continue;
-            foreach (Vector3 wayPoint in street.GetComponent<Street>().WayPoints)
-            {
-                foreach (Vector3 thisWayPoint in wayPoints)
-                {
-                    if (Vector3.Distance(wayPoint, thisWayPoint) <= .2f && 
-                        !trafficManager.GetComponent<TrafficManager>().IsInDistance(wayPoint, startPoint, 2f) && 
-                        !trafficManager.GetComponent<TrafficManager>().IsInDistance(wayPoint, endPoint, 2f))
-                    {
-                        Debug.Log("Connecting "+this.streetID+" and " + street.GetComponent<Street>().StreetID + " at " + wayPoint);
-                        trafficManager.GetComponent<TrafficManager>().GenerateIntersection(gameObject, street, wayPoint);
-                        return;
-                    }
-                }
-            }
-        }
+        LineRenderer renderedLine = streetLine.AddComponent<LineRenderer>();
+        renderedLine.SetPosition(0, this.startPoint);
+        renderedLine.SetPosition(1, this.endPoint);
+        renderedLine.name = "StreetLine";
+        streetLine.transform.parent = gameObject.transform;
     }
 
-    public void DeleteStreetContents()
+    public void DeleteStreetContents(bool doDeleteNodes)
     {
         DeleteWayPoints();
-        DeleteNodes();
+        startNode.GetComponent<Node>().DeleteConnection(this);
+        endNode.GetComponent<Node>().DeleteConnection(this);
+        if (doDeleteNodes)DeleteNodes();
         DeleteLine();
     }
     private void DeleteNodes()
