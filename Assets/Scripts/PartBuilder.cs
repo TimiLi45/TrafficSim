@@ -50,7 +50,9 @@ public class PartBuilder : MonoBehaviour
     [SerializeField, HideInInspector]
     Vector3 mousePositionInGame;
 
+    [SerializeField, HideInInspector]
     Vector3 startDrag;
+    [SerializeField, HideInInspector]
     Vector3 endDrag;
 
     Plane plane = new Plane(Vector3.up, 0);
@@ -58,7 +60,7 @@ public class PartBuilder : MonoBehaviour
     public BuildableTypes CurrentlySelectedType
     {
         get { return currentlySelectedType; }
-        set { currentlySelectedType = value; }
+        set { currentlySelectedType = value; } // I don't think this is needed, but I'm too scared to remove it. Will remove in school, where I can see if it is referenced somewhere.
     } 
 
     public void SetCurrentlySelectedTypebyInt(int ID)
@@ -80,7 +82,7 @@ public class PartBuilder : MonoBehaviour
         }
     }
 
-    public void SetCurrentlySelectedTrafficSignByInt(int ID)
+    public void SetCurrentlySelectedTrafficSignTypeByInt(int ID)
     {
         switch (ID)
         {
@@ -119,9 +121,10 @@ public class PartBuilder : MonoBehaviour
     {
         BuildPart();
         if (isDragging)
-            Drag();
+            DragPlaceStreet();
     }
-    private void Drag()
+
+    private void DragPlaceStreet()
     {
         if (Mouse.current.leftButton.isPressed)
             return;
@@ -143,8 +146,6 @@ public class PartBuilder : MonoBehaviour
 
         switch (currentlySelectedType)
         {
-            case BuildableTypes.BezierCurve:
-                break;
             case BuildableTypes.Straight:
                 GetMousePosition();
                 isDragging = true;
@@ -195,8 +196,8 @@ public class PartBuilder : MonoBehaviour
         {
             rotation = Quaternion.LookRotation((mainCamera.transform.position - placePosition).normalized);
         }
-        rotation.x = 0; // I didn't find any better way of setting JUST the y rotation, so I had to reset the x and z rotation
-        rotation.z = 0; // it however does not matter, so ..too bad!
+        rotation.x = 0; // I didn't find any better way of setting JUST the y rotation, that I liked better than this,
+        rotation.z = 0; // so I had to reset the x and z rotation, it however does not matter, so.. too bad!
         trafficManager.AddTrafficSign(placePosition, currentlySelectedTrafficSignType, currentlySelectedTrafficSignValue, rotation);
     }
 }

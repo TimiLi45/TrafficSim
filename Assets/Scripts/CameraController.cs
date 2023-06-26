@@ -42,17 +42,16 @@ public class CameraController : MonoBehaviour
     [SerializeField]
     private bool useScreenEdge = false;
 
-    //value set in various functions
-    //used to update the position of the camera base object
+    // used to update the position of the camera base object
     private Vector3 targetPosition;
 
     private float zoomHeight;
 
-    //used to track and maintain velocity without a rigidbody
+    // used to track and maintain velocity without a rigidbody
     private Vector3 horizontalVelocity;
     private Vector3 lastPosition;
 
-    //tracks where the dragging action started
+    // tracks where the dragging action started
     Vector3 startDrag;
 
     private void Awake()
@@ -83,8 +82,7 @@ public class CameraController : MonoBehaviour
     private void Update()
     {
         GetKeyboardMovement();
-        //if (useScreenEdge)
-        //    CheckMouseAtScreenEdge();
+        //if (useScreenEdge) CheckMouseAtScreenEdge();
         DragCamera();
 
         UpdateVelocity();
