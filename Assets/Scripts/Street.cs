@@ -25,6 +25,14 @@ public class Street : MonoBehaviour
     {
         get { return streetID; }
     }
+    public Vector3 StartPoint
+    {
+        get { return startPoint; }
+    }
+    public Vector3 EndPoint
+    {
+        get { return endPoint; }
+    }
     public List<Vector3> WayPoints
     {
         get { return wayPoints; }
@@ -37,7 +45,7 @@ public class Street : MonoBehaviour
     {
         get { return endNode; }
     }
-    public void GetData(TrafficManager trafficManager, Vector3 startPoint, Vector3 endPoint, bool doGenerateIntersections = true)
+    public void GetData(TrafficManager trafficManager, Vector3 startPoint, Vector3 endPoint)
     {
         this.trafficManager = trafficManager;
         this.startPoint = startPoint;
@@ -45,7 +53,6 @@ public class Street : MonoBehaviour
         wayPoints = new List<Vector3>();
         streetLine = new GameObject();
         streetID = currentStreetID++;
-
         bool generateStartWayPoint = false;
         bool generateEndWayPoint = false;
 
@@ -56,7 +63,6 @@ public class Street : MonoBehaviour
         this.endPoint = endNode.GetComponent<Node>().Position;
 
         GenerateModel();
-        if(doGenerateIntersections) DetectIntersectionsInArea();
     }
 
     public void ConnectNodesWithNewStreet(TrafficManager trafficManager, GameObject startNode, GameObject endNode)
@@ -119,27 +125,6 @@ public class Street : MonoBehaviour
         renderedLine.SetPosition(1, this.endPoint);
         renderedLine.name = "StreetLine";
         streetLine.transform.parent = gameObject.transform;
-    }
-
-    private void DetectIntersectionsInArea()
-    {
-        foreach (GameObject street in trafficManager.GetComponent<TrafficManager>().StreetList)
-        {
-            if(street.Equals(this)) continue;
-            foreach (Vector3 wayPoint in street.GetComponent<Street>().WayPoints)
-            {
-                foreach (Vector3 thisWayPoint in wayPoints)
-                {
-                    if (Vector3.Distance(wayPoint, thisWayPoint) <= .2f && 
-                        !trafficManager.GetComponent<TrafficManager>().IsInDistance(wayPoint, startPoint, 2f) && 
-                        !trafficManager.GetComponent<TrafficManager>().IsInDistance(wayPoint, endPoint, 2f))
-                    {
-                        trafficManager.GetComponent<TrafficManager>().GenerateIntersection(gameObject, street, wayPoint);
-                        return;
-                    }
-                }
-            }
-        }
     }
 
     public void DeleteStreetContents(bool doDeleteNodes)
