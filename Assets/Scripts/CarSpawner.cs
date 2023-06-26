@@ -43,7 +43,6 @@ public class CarSpawner  : MonoBehaviour
     {
         if (connectedNode != null)
         {
-            Debug.Log()
             GameObject car = new GameObject("Car");
             car.AddComponent<Car>().GetData(trafficManager, connectedNode);
             car.transform.SetParent(trafficManager.transform.Find("Cars"), true);
