@@ -10,6 +10,8 @@ using UnityEngine;
 
 public class TrafficManager : MonoBehaviour
 {
+    public GameObject trafficSignPrefab;
+
     [SerializeField]
     float nodeMergeDistance = 2.0f;
     [SerializeField]
@@ -17,8 +19,12 @@ public class TrafficManager : MonoBehaviour
     [SerializeField]
     float wayPointSphereSize = .2f;
 
+    [SerializeField]
     List<GameObject> streetList = new();
+    [SerializeField]
     List<GameObject> carSpawnerList = new();
+    [SerializeField]
+    List<GameObject> trafficSignList = new();
 
     public float WayPointDistance
     {
@@ -35,6 +41,10 @@ public class TrafficManager : MonoBehaviour
     public List<GameObject> CarSpawnerList
     {
         get { return carSpawnerList;}
+    }
+    public List<GameObject> TrafficSignList
+    {
+        get { return trafficSignList; }
     }
     public void AddStreet(Vector3 startPoint, Vector3 endPoint)
     {
@@ -67,6 +77,16 @@ public class TrafficManager : MonoBehaviour
             Debug.Log("No Location Found for Car Spawner");
         }
     }
+
+    public void AddTrafficSign(Vector3 position, TrafficSignTypes type, int trafficSignValue, Quaternion rotation)
+    {
+        GameObject trafficSign = Instantiate(trafficSignPrefab, new(position.x,0.4f,position.z), Quaternion.identity);
+        trafficSign.transform.rotation = rotation;
+        trafficSign.GetComponent<TrafficSign>().GetData(type, trafficSignValue);
+        trafficSignList.Add(trafficSign);
+        trafficSign.transform.SetParent(transform.Find("TrafficSigns").transform, true);
+    }
+
     public void DetectAndGenerateIntersectionsOnStreet(Street streetToSearch)
     {
         foreach (GameObject street in streetList)
@@ -121,6 +141,15 @@ public class TrafficManager : MonoBehaviour
         return null;
     }
 
+    public GameObject FindCarSpawnerWithPosition(Vector3 Position)
+    {
+        foreach (GameObject carSpawner in carSpawnerList)
+        {
+            if (carSpawner.GetComponent<CarSpawner>().Position == Position) return carSpawner;
+        }
+        return null;
+    }
+
     public GameObject FindCarSpawnerInRange(Vector3 Position, float range)
     {
         foreach (GameObject carSpawner in carSpawnerList)
@@ -130,11 +159,14 @@ public class TrafficManager : MonoBehaviour
         return null;
     }
 
-    public GameObject FindCarSpawnerWithPosition(Vector3 Position)
+    public GameObject FindStreetInRange(Vector3 Position, float range)
     {
-        foreach (GameObject carSpawner in carSpawnerList)
+        foreach(GameObject street in streetList)
         {
-            if (carSpawner.GetComponent<CarSpawner>().Position == Position) return carSpawner;
+            foreach(Vector3 wayPoint in street.GetComponent<Street>().WayPoints)
+            {
+                if(IsInDistance(wayPoint, Position, range)) return street;
+            }
         }
         return null;
     }

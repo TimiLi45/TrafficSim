@@ -6,19 +6,23 @@ using UnityEngine.InputSystem;
 using System;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
+using UnityEngine.EventSystems;
 
 public enum BuildableTypes
 {
-    Crossroad,
     BezierCurve,
     Straight,
-    CarSpawner
+    CarSpawner,
+    TrafficSign
 }
 
 public class PartBuilder : MonoBehaviour
 {
     [SerializeField]
     float minStreetLength = 1.5f;
+
+    [SerializeField]
+    float trafficSignStreetDetectionDistance = 3.5f;
 
     [SerializeField, HideInInspector]
     TrafficManager trafficManager;
@@ -33,6 +37,12 @@ public class PartBuilder : MonoBehaviour
 
     [SerializeField, HideInInspector]
     BuildableTypes currentlySelectedType = BuildableTypes.Straight;
+
+    [SerializeField, HideInInspector]
+    TrafficSignTypes currentlySelectedTrafficSignType = TrafficSignTypes.maxSpeed;
+
+    [SerializeField, HideInInspector]
+    int currentlySelectedTrafficSignValue = 0;
 
     [SerializeField, HideInInspector]
     bool isDragging = false;
@@ -64,6 +74,38 @@ public class PartBuilder : MonoBehaviour
             case 2:
                 currentlySelectedType = BuildableTypes.CarSpawner;
                 break;
+            case 3:
+                currentlySelectedType = BuildableTypes.TrafficSign;
+                break;
+        }
+    }
+
+    public void SetCurrentlySelectedTrafficSignByInt(int ID)
+    {
+        switch (ID)
+        {
+            case 0:
+                currentlySelectedTrafficSignType = TrafficSignTypes.maxSpeed;
+                break;
+            case 1:
+                currentlySelectedTrafficSignType = TrafficSignTypes.forceStreet;
+                break;
+            case 2:
+                currentlySelectedTrafficSignType = TrafficSignTypes.stop;
+                break;
+        }
+    }
+
+    public void SetCurrentlySelectedTrafficSignValueByString(string value)
+    {
+        try
+        {
+            currentlySelectedTrafficSignValue = Convert.ToInt32 (value);
+        }
+        catch
+        {
+            currentlySelectedTrafficSignValue = 0;
+            Debug.Log("Please input an int, not a string.");
         }
     }
 
@@ -96,13 +138,11 @@ public class PartBuilder : MonoBehaviour
 
     private void BuildPart()
     {
-        if (!Mouse.current.leftButton.wasPressedThisFrame)
+        if (!Mouse.current.leftButton.wasPressedThisFrame || EventSystem.current.IsPointerOverGameObject())
             return;
 
         switch (currentlySelectedType)
         {
-            case BuildableTypes.Crossroad:
-                break;
             case BuildableTypes.BezierCurve:
                 break;
             case BuildableTypes.Straight:
@@ -112,6 +152,9 @@ public class PartBuilder : MonoBehaviour
                 break;
             case BuildableTypes.CarSpawner:
                 PlaceCarSpawner();
+                break;
+            case BuildableTypes.TrafficSign:
+                PlaceTrafficSign();
                 break;
         }
     }
@@ -137,5 +180,23 @@ public class PartBuilder : MonoBehaviour
     {
         Vector3 placePosition = GetMousePosition();
         trafficManager.AddCarSpawner(placePosition);
+    }
+
+    private void PlaceTrafficSign()
+    {
+        Vector3 placePosition = GetMousePosition();
+        Quaternion rotation;
+        if(trafficManager.FindStreetInRange(placePosition, trafficSignStreetDetectionDistance) != null)
+        {
+            GameObject streetInRange = trafficManager.FindStreetInRange(placePosition, trafficSignStreetDetectionDistance);
+            rotation = Quaternion.LookRotation((streetInRange.GetComponent<Street>().StartPoint - streetInRange.GetComponent<Street>().EndPoint).normalized);
+        }
+        else
+        {
+            rotation = Quaternion.LookRotation((mainCamera.transform.position - placePosition).normalized);
+        }
+        rotation.x = 0; // I didn't find any better way of setting JUST the y rotation, so I had to reset the x and z rotation
+        rotation.z = 0; // it however does not matter, so ..too bad!
+        trafficManager.AddTrafficSign(placePosition, currentlySelectedTrafficSignType, currentlySelectedTrafficSignValue, rotation);
     }
 }

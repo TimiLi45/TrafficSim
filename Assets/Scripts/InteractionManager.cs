@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using UnityEngine.UIElements;
 using static UnityEditor.Experimental.GraphView.GraphView;
 
@@ -11,7 +12,11 @@ public class InteractionManager : MonoBehaviour
     TrafficManager trafficManager;
 
     [SerializeField, HideInInspector]
-    bool renderingWaypoints = false;
+    bool renderingWayPoints = false;
+    [SerializeField, HideInInspector]
+    bool renderingStreetIDs = false;
+    [SerializeField, HideInInspector]
+    bool renderingNodePositions = false;
     [SerializeField, HideInInspector]
     List<GameObject> wayPointSpheres;
 
@@ -28,22 +33,24 @@ public class InteractionManager : MonoBehaviour
     private void Update()
     {
         RenderWaypoints();
+        RenderStreetIDs();
+        RenderNodePositions();
     }
 
     private void RenderWaypoints()
     {
-        if (!Keyboard.current.tabKey.isPressed)
+        if (!Keyboard.current.f3Key.isPressed)
         {
             foreach (GameObject sphere in wayPointSpheres)
             {
                 Destroy(sphere);
             }
-            renderingWaypoints = false;
+            renderingWayPoints = false;
             return;
         }
 
-        if(renderingWaypoints) return;
-        renderingWaypoints = true;
+        if(renderingWayPoints) return;
+        renderingWayPoints = true;
         foreach (GameObject street in trafficManager.StreetList)
         {
             foreach (Vector3 wayPoint in street.GetComponent<Street>().WayPoints)
@@ -56,5 +63,40 @@ public class InteractionManager : MonoBehaviour
                 wayPointSpheres.Add(sphere);
             }
         }
+    }
+
+    private void RenderStreetIDs()
+    {
+        if (!Keyboard.current.f3Key.isPressed)
+        {
+            renderingStreetIDs = false;
+            return;
+        }/*
+        if (renderingStreetIDs) return;
+        renderingStreetIDs = true;
+        foreach (GameObject street in trafficManager.StreetList)
+        {
+            Debug.Log("test");
+            Canvas canvas;
+            street.AddComponent<Canvas>();
+            canvas = street.GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.WorldSpace;
+            canvas.transform.localScale = new(.01f, .01f, .01f);
+            canvas.transform.position += new Vector3(0, 2, 0);
+
+            GameObject text = new GameObject();
+            text.transform.parent = street.transform;
+            text.name = street.GetComponent<Street>().StreetID.ToString();
+
+            text.AddComponent<Text>();
+            text.GetComponent<Text>().text = street.GetComponent<Street>().StreetID.ToString();
+            text.GetComponent<Text>().fontSize = 100;
+
+        }*/
+    }
+
+    private void RenderNodePositions()
+    {
+        if (!Keyboard.current.f3Key.isPressed) return;
     }
 }
