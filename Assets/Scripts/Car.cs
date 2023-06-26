@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.ConstrainedExecution;
 using System.Xml.Serialization;
 using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
@@ -29,21 +30,31 @@ public class Car : MonoBehaviour
     Verhalten _verhalten = Verhalten.none;
 
     GameObject cube;
+    BoxCollider boxCollider;
 
     bool lastRound = false;
     float acceleration = .05f;
     float deceleration = 0.05f;
-    int maxSpeed = 120;
     float speed = 0f;
-    float maxDistanceFront = 0.4f;
-
+    float maxDistanceFront = 1f;
+    int maxSpeed = 10;
     int currentListPosition = -1;
-    Node nextNode;
-    Node targetNode;
+    int forcesStreetID = -1;
 
     Vector3 targetLocation;
     List<Vector3> Waypoints = new List<Vector3>();
+
+    //Street
+    Street lastStreet;
     Street currentStreet;
+    List<Street> visitedStreets = new List<Street>();
+    //Nodes
+    Node currentStartNode;
+    Node lastStartNode;
+    Node currentEndNode;
+    Node lastEndNode;
+
+
 
     public void GetData(GameObject trafficManager, Node startNode)
     {
@@ -89,6 +100,7 @@ public class Car : MonoBehaviour
         //Sp�ter durch model ersetzen
         if (cube != null)
             cube.transform.position = transform.position;
+            boxCollider.transform.position = transform.position;
 
 
         transform.position = Vector3.MoveTowards(transform.position, targetLocation, speed * Time.deltaTime);
@@ -109,11 +121,24 @@ public class Car : MonoBehaviour
         }
         else
         {
+            lastStreet = currentStreet;
+            lastStartNode = currentStartNode;
+            lastEndNode = currentEndNode;
+            currentStreet = FindStreetOnCurrentStreet();
+            if (currentStreet == lastStreet)
+            {
+                DeletCar();
+            }
+            visitedStreets.Add(currentStreet);
             if (currentStreet != null)
             {
-                Waypoints.Add(currentStreet.StartNode.GetComponent<Node>().Position);
-                Waypoints.Add(currentStreet.EndNode.GetComponent<Node>().Position);
-                currentStreet = FindStreetOnCurrentStreet();
+                currentStartNode = currentStreet.StartNode.GetComponent<Node>();
+                currentEndNode = currentStreet.EndNode.GetComponent<Node>();
+                if (currentStreet == lastStreet)
+                {
+                    DeletCar();
+                }
+
             }
             else
             {
@@ -131,6 +156,7 @@ public class Car : MonoBehaviour
             Waypoints.Add(currentStreet.StartNode.GetComponent<Node>().Position);
             Waypoints.Add(currentStreet.EndNode.GetComponent<Node>().Position);
         }
+
     }
 
     private void NextWaypoint()
@@ -147,6 +173,7 @@ public class Car : MonoBehaviour
             if (currentStreet != null)
             {
                 targetLocation = Waypoints[0];
+                currentListPosition = 0;
             }
         }
     }
@@ -190,17 +217,47 @@ public class Car : MonoBehaviour
         cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
         cube.name = "CarCube";
         cube.transform.parent = gameObject.transform;
+        boxCollider = this.AddComponent<BoxCollider>();
+        this.AddComponent<Rigidbody>();
+
     }
 
     private Street FindStreetOnCurrentStreet()
     {
-        List<Street> availableStreet = new List<Street>();
+        if (forcesStreetID != -1)
+        {
+            foreach (Street connectedStreet in currentStreet.EndNode.GetComponent<Node>().ConnectedStreets)
+            {
+                if (connectedStreet.StreetID == forcesStreetID)
+                {
+                    forcesStreetID = -1;
+                    return connectedStreet;
+                }
+            }
+        }
 
+        List<Street> availableStreet = new List<Street>();
         foreach (Street connectedStreet in currentStreet.EndNode.GetComponent<Node>().ConnectedStreets)
         {
+
             if (connectedStreet.GetComponent<Street>().StreetID != currentStreet.StreetID)
             {
-                availableStreet.Add(connectedStreet.GetComponent<Street>());
+
+                // Suche on Die Jetzige Straße Bereits befahren wurde
+                bool alreadyUsed = false;
+                foreach (Street item in visitedStreets)
+                {
+                    if (item == connectedStreet)
+                    {
+                        alreadyUsed = true;
+                        break;
+                    }
+                }
+
+                if (!alreadyUsed)
+                {
+                    availableStreet.Add(connectedStreet.GetComponent<Street>());
+                }
             }
         }
 
@@ -218,4 +275,6 @@ public class Car : MonoBehaviour
         Destroy(this.gameObject);
         Destroy(cube);
     }
+
+ 
 }
