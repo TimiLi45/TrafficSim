@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.ConstrainedExecution;
 using System.Xml.Serialization;
 using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
@@ -29,12 +30,13 @@ public class Car : MonoBehaviour
     Verhalten _verhalten = Verhalten.none;
 
     GameObject cube;
+    BoxCollider boxCollider;
 
     bool lastRound = false;
     float acceleration = .05f;
     float deceleration = 0.05f;
     float speed = 0f;
-    float maxDistanceFront = 0.4f;
+    float maxDistanceFront = 1f;
     int maxSpeed = 10;
     int currentListPosition = -1;
     int forcesStreetID = -1;
@@ -98,6 +100,7 @@ public class Car : MonoBehaviour
         //Sp�ter durch model ersetzen
         if (cube != null)
             cube.transform.position = transform.position;
+            boxCollider.transform.position = transform.position;
 
 
         transform.position = Vector3.MoveTowards(transform.position, targetLocation, speed * Time.deltaTime);
@@ -211,6 +214,9 @@ public class Car : MonoBehaviour
         cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
         cube.name = "CarCube";
         cube.transform.parent = gameObject.transform;
+        boxCollider = this.AddComponent<BoxCollider>();
+        this.AddComponent<Rigidbody>();
+
     }
 
     private Street FindStreetOnCurrentStreet()
@@ -266,4 +272,6 @@ public class Car : MonoBehaviour
         Destroy(this.gameObject);
         Destroy(cube);
     }
+
+ 
 }

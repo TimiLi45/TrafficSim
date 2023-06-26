@@ -83,8 +83,8 @@ public class CameraController : MonoBehaviour
     private void Update()
     {
         GetKeyboardMovement();
-        if (useScreenEdge)
-            CheckMouseAtScreenEdge();
+        //if (useScreenEdge)
+        //    CheckMouseAtScreenEdge();
         DragCamera();
 
         UpdateVelocity();
