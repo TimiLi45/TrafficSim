@@ -40,7 +40,7 @@ public class InteractionManager : MonoBehaviour
         RenderNodeIDsAndPositions();
 
         RotateStreetIDs();
-        RotateNodeIDsAndPositions();
+        //RotateNodeIDsAndPositions();
     }
 
     private void RenderWaypoints()
@@ -102,30 +102,30 @@ public class InteractionManager : MonoBehaviour
 
     private void RenderNodeIDsAndPositions()
     {
-        /*if (!Keyboard.current.f3Key.isPressed && !renderingNodeIDsAndPositions) return;
-        if (!Keyboard.current.f3Key.isPressed && renderingStreetIDs)
+        if (!Keyboard.current.f3Key.isPressed && !renderingNodeIDsAndPositions) return;
+        if (!Keyboard.current.f3Key.isPressed && renderingNodeIDsAndPositions)
         {
-            foreach (GameObject street in trafficManager.StreetList)
+            foreach (GameObject node in trafficManager.NodeList)
             {
-                Destroy(street.GetComponent<TextMesh>());
+                Destroy(node.GetComponent<TextMesh>());
             }
-            renderingStreetIDs = false;
+            renderingNodeIDsAndPositions = false;
             return;
         }
 
-        if (renderingStreetIDs) return;
-        renderingStreetIDs = true;
-
-        foreach (GameObject street in trafficManager.StreetList)
+        if (renderingNodeIDsAndPositions) return;
+        renderingNodeIDsAndPositions = true;
+        /*
+        foreach (GameObject node in trafficManager.NodeList)
         {
-            street.AddComponent<TextMesh>();
-            street.GetComponent<TextMesh>().text = street.GetComponent<Street>().StreetID.ToString()+;
-            street.GetComponent<TextMesh>().characterSize = .1f;
-            street.GetComponent<TextMesh>().fontSize = 150;
-            street.GetComponent<TextMesh>().anchor = TextAnchor.MiddleCenter;
-            street.GetComponent<TextMesh>().alignment = TextAlignment.Center;
-            street.GetComponent<TextMesh>().transform.position = Vector3.Lerp(street.GetComponent<Street>().StartPoint, street.GetComponent<Street>().EndPoint, .5f);
-            street.GetComponent<TextMesh>().transform.position += new Vector3(0, 3, 0);
+            node.AddComponent<TextMesh>();
+            node.GetComponent<TextMesh>().text = node.GetComponent<Node>().NodeID.ToString() + node.GetComponent<Node>().Position.ToString();
+            node.GetComponent<TextMesh>().characterSize = .1f;
+            node.GetComponent<TextMesh>().fontSize = 150;
+            node.GetComponent<TextMesh>().anchor = TextAnchor.MiddleCenter;
+            node.GetComponent<TextMesh>().alignment = TextAlignment.Center;
+            node.GetComponent<TextMesh>().transform.position = node.GetComponent<Node>().Position;
+            node.GetComponent<TextMesh>().transform.position += new Vector3(0, 3, 0);
         }*/
     }
 
@@ -142,6 +142,11 @@ public class InteractionManager : MonoBehaviour
 
     private void RotateNodeIDsAndPositions()
     {
-
+        if (!renderingNodeIDsAndPositions) return;
+        foreach (GameObject node in trafficManager.NodeList)
+        {
+            if (node.GetComponent<TextMesh>() == null) continue;
+            node.GetComponent<TextMesh>().transform.rotation = Quaternion.LookRotation((node.GetComponent<TextMesh>().transform.position - mainCamera.transform.position).normalized);
+        }
     }
 }

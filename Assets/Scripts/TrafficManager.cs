@@ -138,6 +138,18 @@ public class TrafficManager : MonoBehaviour
         Destroy(street);
     }
 
+    public void DeleteNode(GameObject node)
+    {
+        node.GetComponent<Node>().DeleteSphere();
+        nodeList.Remove(node);
+        Destroy(node);
+    }
+
+    public void DeleteCarSpawner(GameObject carSpawner)
+    {
+        Destroy(carSpawner);
+    }
+
     public GameObject FindNodeWithPosition(Vector3 Position)
     {
         foreach (GameObject street in streetList)
@@ -146,15 +158,6 @@ public class TrafficManager : MonoBehaviour
                 return street.GetComponent<Street>().StartNode;
             if (IsInDistance(street.GetComponent<Street>().EndNode.GetComponent<Node>().Position, Position, nodeMergeDistance))
                 return street.GetComponent<Street>().EndNode;
-        }
-        return null;
-    }
-
-    public GameObject FindCarSpawnerWithPosition(Vector3 Position)
-    {
-        foreach (GameObject carSpawner in carSpawnerList)
-        {
-            if (carSpawner.GetComponent<CarSpawner>().Position == Position) return carSpawner;
         }
         return null;
     }
@@ -180,20 +183,11 @@ public class TrafficManager : MonoBehaviour
         return null;
     }
 
-    public bool IsNodeOnStreet(GameObject node, GameObject street)
-    {
-        return (Math.Abs(Vector3.Distance(street.GetComponent<Street>().StartNode.GetComponent<Node>().Position, node.GetComponent<Node>().Position)) + Math.Abs(Vector3.Distance(street.GetComponent<Street>().EndNode.GetComponent<Node>().Position, node.GetComponent<Node>().Position))) == Math.Abs(Vector3.Distance(street.GetComponent<Street>().StartNode.GetComponent<Node>().Position, street.GetComponent<Street>().EndNode.GetComponent<Node>().Position));
-    }
 
     public bool IsInDistance(Vector3 a, Vector3 b, float distance)
     {
         if (Vector3.Distance(a, b) < distance)
             return true;
         return false;
-    }
-
-    public void DeleteCarSpawner(CarSpawner carSpawner)
-    {
-        Destroy(carSpawner.gameObject);
     }
 }
