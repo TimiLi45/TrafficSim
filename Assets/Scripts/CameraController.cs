@@ -82,7 +82,7 @@ public class CameraController : MonoBehaviour
     private void Update()
     {
         GetKeyboardMovement();
-        //if (useScreenEdge) CheckMouseAtScreenEdge();
+        if (useScreenEdge) CheckMouseAtScreenEdge();
         DragCamera();
         UpdateVelocity();
         UpdateCameraPosition();
@@ -135,7 +135,7 @@ public class CameraController : MonoBehaviour
         if (!Mouse.current.middleButton.isPressed)
             return;
 
-        Plane plane = new Plane(Vector3.up, Vector3.zero);
+        Plane plane = new(Vector3.up, Vector3.zero);
         Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
 
         if(plane.Raycast(ray, out float distance))
@@ -156,7 +156,7 @@ public class CameraController : MonoBehaviour
     
     private void UpdateCameraPosition()
     {
-        Vector3 zoomTarget = new Vector3(cameraTransform.localPosition.x, zoomHeight, cameraTransform.localPosition.z);
+        Vector3 zoomTarget = new(cameraTransform.localPosition.x, zoomHeight, cameraTransform.localPosition.z);
         zoomTarget -= zoomSpeed * (zoomHeight - cameraTransform.localPosition.y) * Vector3.forward;
 
         cameraTransform.localPosition = Vector3.Lerp(cameraTransform.localPosition, zoomTarget, Time.deltaTime * zoomDampening);
@@ -168,7 +168,7 @@ public class CameraController : MonoBehaviour
         if(targetPosition.sqrMagnitude > 0.1f)
         {
             speed = Mathf.Lerp(speed, maxSpeed, Time.deltaTime * acceleration);
-            transform.position += targetPosition * speed * Time.deltaTime;
+            transform.position += speed * Time.deltaTime * targetPosition;
         }
         else
         {
