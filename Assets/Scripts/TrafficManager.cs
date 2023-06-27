@@ -56,6 +56,7 @@ public class TrafficManager : MonoBehaviour
     public void AddStreet(Vector3 startPoint, Vector3 endPoint)
     {
         GameObject street = new GameObject("Street");
+        street.transform.position = Vector3.Lerp(startPoint, endPoint, .5f);
         street.AddComponent<Street>().SetData(this, startPoint, endPoint);
         street.transform.SetParent(transform.Find("Streets").transform, true);
         streetList.Add(street);
@@ -71,6 +72,7 @@ public class TrafficManager : MonoBehaviour
             if (IsInDistance(position, street.GetComponent<Street>().StartNode.GetComponent<Node>().Position, nodeMergeDistance))
             {
                 GameObject carSpawner = new GameObject();
+                carSpawner.transform.position = position;
                 carSpawner.AddComponent<CarSpawner>().GetData(gameObject, position);
                 carSpawner.name = "CarSpawner";
                 carSpawner.transform.SetParent(transform.Find("CarSpawner").transform, true);
