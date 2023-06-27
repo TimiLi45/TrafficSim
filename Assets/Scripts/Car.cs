@@ -366,7 +366,7 @@ public class Car : MonoBehaviour
         }
         if (found2)
         {
-            notVisitedNodes[i] = lowestCost
+            //notVisitedNodes[i] = lowestCost
         }
 
     }
