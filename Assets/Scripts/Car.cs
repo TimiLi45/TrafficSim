@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.MemoryProfiler;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 using UnityEngine.XR;
 using static UnityEditor.PlayerSettings;
@@ -24,7 +26,7 @@ public class Car : MonoBehaviour
     {
         none,
         drive,
-        deceleration
+        stop,
 
     }
     Verhalten _verhalten = Verhalten.none;
@@ -33,13 +35,16 @@ public class Car : MonoBehaviour
     BoxCollider boxCollider;
 
     bool lastRound = false;
+    float stopTimeLeft = 1f;
     float acceleration = .05f;
-    float deceleration = 0.3f;
+    float deceleration = 0.1f;
     float speed = 0f;
     float maxDistanceFront = 1f;
     int maxSpeed = 10;
     int currentListPosition = -1;
     int forcesStreetID = -1;
+
+
     public int ForcesStreetID
     {
         get { return forcesStreetID; }
@@ -60,6 +65,12 @@ public class Car : MonoBehaviour
     Node currentEndNode;
     Node lastEndNode;
 
+    //Dijkstra
+    List<Node> visitedNodes = new List<Node>();
+    List<Node> notVisitedNodes = new List<Node>();
+    List<Node> nodes = new List<Node>();
+    List<float> costToNode = new List<float>();
+
 
 
     public void GetData(GameObject trafficManager, Node startNode)
@@ -68,12 +79,12 @@ public class Car : MonoBehaviour
         if (startNode == null) DeleteCar();
         this.trafficManager = trafficManager;
 
-        for(int i = 0; i < startNode.ConnectedStreets.Count; i++)
+        for (int i = 0; i < startNode.ConnectedStreets.Count; i++)
         {
             if (startNode.ConnectedStreets[i] != null)
             {
                 currentStreet = startNode.ConnectedStreets[i];
-                if(currentStreet.StartNode.GetComponent<Node>().Equals(startNode))
+                if (currentStreet.StartNode.GetComponent<Node>().Equals(startNode))
                 {
                     transform.position = currentStreet.StartNode.GetComponent<Node>().Position;
                     targetLocation = currentStreet.EndNode.GetComponent<Node>().Position;
@@ -88,7 +99,10 @@ public class Car : MonoBehaviour
 
     private void Update()
     {
-        Rotate();
+
+
+
+
         switch (_verhalten)
         {
             case Verhalten.none: break;
@@ -97,9 +111,19 @@ public class Car : MonoBehaviour
                     Acceleration();
                     break;
                 }
-            case Verhalten.deceleration:
+            case Verhalten.stop:
                 {
                     Deceleration();
+                    if (stopTimeLeft <= 0f && speed <= 0f)
+                    {
+                        _verhalten = Verhalten.drive;
+                        stopTimeLeft = 1f;
+                    }
+                    else
+                    {
+                        stopTimeLeft -= Time.deltaTime;
+                    }
+
                     break;
                 }
         }
@@ -117,7 +141,7 @@ public class Car : MonoBehaviour
             NextWaypoint();
         }
 
-        if(currentStreet == null)
+        if (currentStreet == null)
             DeleteCar();
     }
 
@@ -210,16 +234,6 @@ public class Car : MonoBehaviour
         }
     }
 
-    private void Rotate()
-    {
-        Vector3 direction = targetLocation - transform.position;
-        if (direction != Vector3.zero)
-        {
-            Quaternion rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
-            transform.rotation = rotation;
-        }
-    }
-
     private void AddMesh()
     {
         cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -289,5 +303,72 @@ public class Car : MonoBehaviour
         maxSpeed = newMaxSpeed;
     }
 
- 
+    public void Stop()
+    {
+        _verhalten = Verhalten.stop;
+    }
+
+    public void Dijkstra(int nodeID)
+    {
+        Node pointnode = currentEndNode;
+
+        FindNodsFromNode(pointnode);
+
+
+
+
+    }
+
+    public void FindNodsFromNode(Node node)
+    {
+        // Fügt die jetzige Node den untersuchten hinzu
+        visitedNodes.Add(node);
+        // Schaut sich die Angeschlossenen nodes hinzu speichert die niedrigste cost
+        float lowestCost = 99999999999999999; // ignore that shit
+        Node nodeWithLowestCost = null;
+
+        foreach (Street connectedStreet in node.ConnectedStreets)
+        {
+            // Wenn die jetzige straße einen niedrigeren Wert als die bisherige
+            if(connectedStreet.cost < lowestCost)
+            {
+                lowestCost = connectedStreet.cost;
+                nodeWithLowestCost = connectedStreet.EndNode.GetComponent<Node>();
+            }
+            // Wenn diese Node NICHT in der lsite der Buchten Nodes auftaucht
+            // Sorry dafür aber ich bin mit dem nerven at the end
+            bool found = false;
+            foreach (var item in visitedNodes)
+            {
+                if(item == connectedStreet.EndNode.GetComponent<Node>())
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                notVisitedNodes.Add(connectedStreet.EndNode.GetComponent<Node>());
+
+            }
+        }
+        // Jetzt suchen wir in der Liste der Untersuchten Nodes ab sie dort bereits exestiert und einen kleieren Wert hat
+        bool found2 = false; // i dont know what is goning on????
+        int position = 0; // this is cursed
+        foreach (var item in nodes)
+        {
+            if (item == nodeWithLowestCost)
+            {
+                found2 = true;
+                break;
+            }
+            position++;
+        }
+        if (found2)
+        {
+            notVisitedNodes[i] = lowestCost
+        }
+
+    }
+
 }
