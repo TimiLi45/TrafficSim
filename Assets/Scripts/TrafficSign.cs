@@ -11,11 +11,16 @@ public class TrafficSign : MonoBehaviour
     int newMaxSpeed = 100;
     [SerializeField]
     int newStreet = -1;
+    [SerializeField]
+    int nodeID = -1;
 
     enum Sign
     {
         maxSpeed,
-        forceStreet
+        forceStreet,
+        STOP,
+        dijkstra
+
     }
 
     [SerializeField]
@@ -34,6 +39,11 @@ public class TrafficSign : MonoBehaviour
                 case Sign.forceStreet:
                     carComponente.ForcesStreetID = newStreet;
                     break;
+                case Sign.STOP:
+                    carComponente.Stop();
+                    break;
+                case Sign.dijkstra:
+                    carComponente.Dijkstra(nodeID);
                     
 
 

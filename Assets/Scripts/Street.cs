@@ -12,6 +12,8 @@ public class Street : MonoBehaviour
 
     int streetID;
 
+    public float cost;
+
     Vector3 startPoint;
     Vector3 endPoint;
     List<Vector3> wayPoints;
@@ -55,6 +57,8 @@ public class Street : MonoBehaviour
         streetID = currentStreetID++;
         bool generateStartWayPoint = false;
         bool generateEndWayPoint = false;
+
+        cost = Vector3.Distance(startPoint, endPoint);
 
         GenerateNodes(ref generateStartWayPoint, ref generateEndWayPoint);
         GenerateWayPoints(trafficManager.WayPointDistance, generateStartWayPoint, generateEndWayPoint);
