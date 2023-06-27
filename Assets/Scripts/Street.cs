@@ -93,6 +93,7 @@ public class Street : MonoBehaviour
         if (trafficManager.FindNodeWithPosition(startPoint) == null)
         {
             startNode = new GameObject("Node");
+            startNode.transform.position = startPoint;
             startNode.AddComponent<Node>().SetData(trafficManager, startPoint);
             startNode.transform.SetParent(trafficManager.transform.Find("Nodes").transform, true);
             generateStartWayPoint = true;
@@ -102,6 +103,7 @@ public class Street : MonoBehaviour
         if (trafficManager.FindNodeWithPosition(endPoint) == null)
         {
             endNode = new GameObject("Node");
+            endNode.transform.position = endPoint;
             endNode.AddComponent<Node>().SetData(trafficManager, endPoint);
             endNode.transform.SetParent(trafficManager.transform.Find("Nodes").transform, true);
             generateEndWayPoint = true;

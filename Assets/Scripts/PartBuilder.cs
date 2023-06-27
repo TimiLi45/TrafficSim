@@ -7,9 +7,11 @@ using System;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
 using UnityEngine.EventSystems;
+using UnityEngine.XR;
 
 public enum BuildableTypes
 {
+    GrabObject,
     BezierCurve,
     Straight,
     CarSpawner,
@@ -37,7 +39,6 @@ public class PartBuilder : MonoBehaviour
 
     [SerializeField, HideInInspector]
     BuildableTypes currentlySelectedType = BuildableTypes.Straight;
-
     [SerializeField, HideInInspector]
     TrafficSignTypes currentlySelectedTrafficSignType = TrafficSignTypes.maxSpeed;
 
@@ -60,13 +61,15 @@ public class PartBuilder : MonoBehaviour
     public BuildableTypes CurrentlySelectedType
     {
         get { return currentlySelectedType; }
-        set { currentlySelectedType = value; } // I don't think this is needed, but I'm too scared to remove it. Will remove in school, where I can see if it is referenced somewhere.
     } 
 
     public void SetCurrentlySelectedTypebyInt(int ID)
     {
         switch (ID)
         {
+            case -1:
+                currentlySelectedType = BuildableTypes.GrabObject;
+                break;
             case 0:
                 currentlySelectedType = BuildableTypes.BezierCurve;
                 break;
@@ -119,6 +122,8 @@ public class PartBuilder : MonoBehaviour
 
     void Update()
     {
+        //if(currentlySelectedType == BuildableTypes.GrabObject)
+        //change cursor here
         BuildPart();
         if (isDragging)
             DragPlaceStreet();
@@ -146,6 +151,9 @@ public class PartBuilder : MonoBehaviour
 
         switch (currentlySelectedType)
         {
+            case BuildableTypes.GrabObject:
+                GrabObject();
+                break;
             case BuildableTypes.Straight:
                 GetMousePosition();
                 isDragging = true;
@@ -175,6 +183,11 @@ public class PartBuilder : MonoBehaviour
         Physics.Raycast(ray, out hit, 1000f);
         mousePositionInGame = hit.point;
         return mousePositionInGame;
+    }
+
+    private void GrabObject()
+    {
+
     }
 
     private void PlaceCarSpawner()
