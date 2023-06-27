@@ -68,7 +68,7 @@ public class Street : MonoBehaviour
         // because if the street connects to another noder, it already has a WayPoint at that location.
         // I don't want to call GenerateWayPoints from GenerateNodes, so I have to have external variables.
         // In order to set 2 variables with 1 method call, I'm setting the variables via reference.
-        // This is not clean code. This is not good practice. It is what it is.
+        // This is not clean code. This is not best practice. It is what it is.
         // I don't have time to search for a better solution.
         bool generateStartWayPoint = false;
         bool generateEndWayPoint = false;
@@ -76,13 +76,14 @@ public class Street : MonoBehaviour
         cost = Vector3.Distance(startPoint, endPoint);
 
         GenerateNodes(ref generateStartWayPoint, ref generateEndWayPoint);
-        GenerateWayPoints(trafficManager.WayPointDistance, generateStartWayPoint, generateEndWayPoint);
 
         // I'm setting the start and end Point a second time here, because the Nodes may have merged with different Nodes,
         // in turn changeing their positions a bit. It's fine like this, at the beginning these Points are just for creating
         // the Nodes, now they can be called as an alternative to the Node position. This call is shorter and therefore better.
         this.startPoint = startNode.GetComponent<Node>().Position;
         this.endPoint = endNode.GetComponent<Node>().Position;
+
+        GenerateWayPoints(trafficManager.WayPointDistance, generateStartWayPoint, generateEndWayPoint);
 
         GenerateModel();
     }
@@ -146,12 +147,12 @@ public class Street : MonoBehaviour
         if (startNode.GetComponent<Node>().ConnectedStreets.Count < 1)
         {
             startNode.GetComponent<Node>().DeleteSphere();
-            Destroy(startNode);
+            trafficManager.DeleteNode(startNode);
         }
         if (endNode.GetComponent<Node>().ConnectedStreets.Count < 1)
         {
             endNode.GetComponent<Node>().DeleteSphere();
-            Destroy(endNode);
+            trafficManager.DeleteNode(endNode);
         }
     }
     private void DeleteWayPoints()
