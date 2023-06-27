@@ -25,13 +25,12 @@ public class TrafficManager : MonoBehaviour
     List<GameObject> carSpawnerList = new();
     [SerializeField, HideInInspector]
     List<GameObject> trafficSignList = new();
+    [SerializeField, HideInInspector]
+    List<GameObject> nodeList = new();
 
-    List<Node> nodeList = new();
-
-    public List<Node> NodeList
+    public List<GameObject> NodeList
     {
         get { return nodeList; }
-        set { nodeList = value; }
     }
     public float WayPointDistance
     {

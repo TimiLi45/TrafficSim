@@ -338,7 +338,7 @@ public class Car : MonoBehaviour
     {
         Debug.Log(trafficManager.GetComponent<TrafficManager>().NodeList.Count);
 
-        foreach (Node item in trafficManager.GetComponent<TrafficManager>().NodeList)
+        foreach (GameObject item in trafficManager.GetComponent<TrafficManager>().NodeList)
         {
             FindNodsFromNode(item.GetComponent<Node>());
         }
