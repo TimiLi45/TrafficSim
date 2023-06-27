@@ -11,6 +11,7 @@ using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.MemoryProfiler;
 using UnityEngine;
+using UnityEngine.Assertions.Must;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 using UnityEngine.XR;
@@ -18,6 +19,31 @@ using static UnityEditor.PlayerSettings;
 using static UnityEditor.Progress;
 using Debug = UnityEngine.Debug;
 using Random = System.Random;
+
+//Dijkstra
+public struct Pathlist
+{
+    private Node targetNode;
+    private float cost;
+    private Node previousNode;
+
+    public Node TargetNode
+    {
+        get { return targetNode; }
+        set { targetNode = value; }
+    }
+    public float Cost
+    {
+        get { return cost; }
+        set { cost = value; }
+    }
+    public Node PreviousNode
+    {
+        get { return previousNode; }
+        set { previousNode = value; }
+    }
+    
+}
 
 public class Car : MonoBehaviour
 {
@@ -65,12 +91,12 @@ public class Car : MonoBehaviour
     Node currentEndNode;
     Node lastEndNode;
 
-    //Dijkstra
-    List<Node> visitedNodes = new List<Node>();
-    List<Node> notVisitedNodes = new List<Node>();
-    List<Node> nodes = new List<Node>();
-    List<float> costToNode = new List<float>();
 
+
+    List<Node> notVisitedNodes = new List<Node>();
+    List<Node> visitedNodes = new List<Node>();
+
+    List<Pathlist> listOfPaths = new List<Pathlist>();
 
 
     public void GetData(GameObject trafficManager, Node startNode)
@@ -310,65 +336,136 @@ public class Car : MonoBehaviour
 
     public void Dijkstra(int nodeID)
     {
-        Node pointnode = currentEndNode;
+        Debug.Log(trafficManager.GetComponent<TrafficManager>().NodeList.Count);
 
-        FindNodsFromNode(pointnode);
+        foreach (Node item in trafficManager.GetComponent<TrafficManager>().NodeList)
+        {
+            FindNodsFromNode(item.GetComponent<Node>());
+        }
+        
+        
+        // Fügt die jetzige Node den untersuchten hinzu u
+        Node currentViewdNode = null;
+        int safty = 100;
+        Pathlist startEntry = new Pathlist();
+        startEntry.TargetNode = currentEndNode.GetComponent<Node>();
+        startEntry.PreviousNode = null;
+        startEntry.Cost = 0;
+        listOfPaths.Add(startEntry);
+        FindNodsFromNode(currentEndNode.GetComponent<Node>());
 
 
 
 
+        //// Finde Die Erste Node die sich angeschaut werden sollte
+        //foreach (var item in notVisitedNodes)
+        //{
+        //    currentViewdNode = item.GetComponent<Node>();
+        //    break;
+        //}
+
+
+        //do
+        //{
+        //    foreach (Node item in notVisitedNodes)
+        //    {
+        //        bool found = false;
+        //        foreach (Node item2 in visitedNodes)
+        //        {
+        //            if(item.GetComponent<Node>() == item2.GetComponent<Node>())
+        //            {
+        //                found = true;
+        //                break;
+        //            }
+        //        }
+        //        if (!found)
+        //        {
+        //            currentViewdNode = item.GetComponent<Node>();
+        //            FindNodsFromNode(currentViewdNode);
+        //        }
+        //    }
+        //    safty--;
+        //} while (nodeID != currentViewdNode.GetComponent<Node>().NodeID && safty > 0);
+
+
+
+        foreach (var item in listOfPaths)
+        {
+
+            if (item.PreviousNode != null)
+                Debug.Log("TaretNode: " + item.TargetNode.GetComponent<Node>().NodeID + " with Cost: " + item.Cost +  "over Node: " +item.PreviousNode.GetComponent<Node>().NodeID);
+            Debug.Log("");
+         
+        }
     }
 
     public void FindNodsFromNode(Node node)
     {
-        // Fügt die jetzige Node den untersuchten hinzu
+        // Wenn die Node in der Liste der Liste besuchten Nodes auftaucht
+        bool foundInVisited = false;
+        foreach (var item in visitedNodes)
+        {
+            if (item == node.GetComponent<Node>())
+            {
+                foundInVisited = true;
+                break;
+            }
+        }
+        if (foundInVisited) { return; }
         visitedNodes.Add(node);
+
         // Schaut sich die Angeschlossenen nodes hinzu speichert die niedrigste cost
         float lowestCost = 99999999999999999; // ignore that shit
         Node nodeWithLowestCost = null;
 
-        foreach (Street connectedStreet in node.ConnectedStreets)
+
+
+
+
+
+
+        foreach (Street connectedStreet in node.GetComponent<Node>().ConnectedStreets)
         {
-            // Wenn die jetzige straße einen niedrigeren Wert als die bisherige
-            if(connectedStreet.cost < lowestCost)
+            if (connectedStreet.EndNode.GetComponent<Node>() != node.GetComponent<Node>())
             {
-                lowestCost = connectedStreet.cost;
-                nodeWithLowestCost = connectedStreet.EndNode.GetComponent<Node>();
-            }
-            // Wenn diese Node NICHT in der lsite der Buchten Nodes auftaucht
-            // Sorry dafür aber ich bin mit dem nerven at the end
-            bool found = false;
-            foreach (var item in visitedNodes)
-            {
-                if(item == connectedStreet.EndNode.GetComponent<Node>())
+                // Wenn die jetzige straße einen niedrigeren Wert als die bisherige
+                if (connectedStreet.cost < lowestCost)
                 {
-                    found = true;
-                    break;
+                    lowestCost = connectedStreet.cost;
+                    nodeWithLowestCost = connectedStreet.EndNode.GetComponent<Node>();
+                }
+
+                // Wenn die Node in der Liste der noch Nicht Besuchten Nodes auftauch
+                bool foundInNotVisited = false;
+                foreach (var item in visitedNodes)
+                {
+                    if (item == connectedStreet.EndNode.GetComponent<Node>())
+                    {
+                        foundInNotVisited = true;
+                        break;
+                    }
+                }
+
+                // Wenn Die Node in keine der Listen auftaucht füge sie ein
+                if (!foundInNotVisited)
+                {
+                    notVisitedNodes.Add(connectedStreet.EndNode.GetComponent<Node>());
+
                 }
             }
-            if (!found)
-            {
-                notVisitedNodes.Add(connectedStreet.EndNode.GetComponent<Node>());
+        }
 
-            }
-        }
-        // Jetzt suchen wir in der Liste der Untersuchten Nodes ab sie dort bereits exestiert und einen kleieren Wert hat
-        bool found2 = false; // i dont know what is goning on????
-        int position = 0; // this is cursed
-        foreach (var item in nodes)
-        {
-            if (item == nodeWithLowestCost)
-            {
-                found2 = true;
-                break;
-            }
-            position++;
-        }
-        if (found2)
-        {
-            //notVisitedNodes[i] = lowestCost
+        if(nodeWithLowestCost != null) 
+        { 
+        Pathlist entry = new Pathlist();
+        entry.TargetNode = nodeWithLowestCost.GetComponent<Node>();
+        entry.PreviousNode = node.GetComponent<Node>();
+        entry.Cost = lowestCost;
+        listOfPaths.Add(entry);
         }
 
     }
+
+    
 
 }

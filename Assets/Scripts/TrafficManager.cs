@@ -26,6 +26,13 @@ public class TrafficManager : MonoBehaviour
     [SerializeField, HideInInspector]
     List<GameObject> trafficSignList = new();
 
+    List<Node> nodeList = new();
+
+    public List<Node> NodeList
+    {
+        get { return nodeList; }
+        set { nodeList = value; }
+    }
     public float WayPointDistance
     {
         get { return wayPointSpacing; }

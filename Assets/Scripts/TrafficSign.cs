@@ -7,7 +7,8 @@ public enum TrafficSignTypes
 {
     maxSpeed,
     forceStreet,
-    stop
+    STOP,
+    Dijkstra
 }
 
 public class TrafficSign : MonoBehaviour
@@ -39,12 +40,12 @@ public class TrafficSign : MonoBehaviour
             case TrafficSignTypes.forceStreet:
                 collidedCar.ForcesStreetID = value;
                 break;
-            case TrafficSignTypes.stop:
-                //collidedCar.Stop();
+            case TrafficSignTypes.STOP:
+                collidedCar.Stop();
                 break;
-            //case TrafficSignTypes.dijkstra:
-            //    collidedCar.Dijkstra(nodeID);
-            //    break;
+            case TrafficSignTypes.Dijkstra:
+                collidedCar.Dijkstra(value);
+                break;
         }
     }
 
