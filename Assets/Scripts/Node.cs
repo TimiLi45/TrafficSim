@@ -46,6 +46,7 @@ public class Node : MonoBehaviour
         this.trafficManager = trafficManager;
         nodeID = currentNodeID++;
         this.position = position;
+        trafficManager.NodeList.Add(gameObject);
         // The sphere for rendering Nodes is generated here for now, since later it won't be done in this class at all, but in the InteractionManager as a Debug Render.
         sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         sphere.transform.position = position;
@@ -53,9 +54,6 @@ public class Node : MonoBehaviour
         sphere.name = "NodeSphere";
         sphere.transform.parent = gameObject.transform;
         sphere.GetComponent<SphereCollider>().enabled = false;
-        // Add Node to Nodelist
-        trafficManager.NodeList.Add(this.GetComponent<Node>());
-
     }
 
     public void AddConnectedStreet(Street connectedStreet)
