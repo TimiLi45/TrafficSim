@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -40,7 +41,7 @@ public class InteractionManager : MonoBehaviour
         RenderNodeIDsAndPositions();
 
         RotateStreetIDs();
-        //RotateNodeIDsAndPositions();
+        RotateNodeIDsAndPositions();
     }
 
     private void RenderWaypoints()
@@ -90,13 +91,13 @@ public class InteractionManager : MonoBehaviour
         foreach (GameObject street in trafficManager.StreetList)
         {
             street.AddComponent<TextMesh>();
-            street.GetComponent<TextMesh>().text = street.GetComponent<Street>().StreetID.ToString();
+            street.GetComponent<TextMesh>().text = street.GetComponent<Street>().StreetID.ToString()+"\n";
+            street.GetComponent<TextMesh>().color = Color.magenta;
             street.GetComponent<TextMesh>().characterSize = .1f;
             street.GetComponent<TextMesh>().fontSize = 150;
-            street.GetComponent<TextMesh>().anchor = TextAnchor.MiddleCenter;
+            street.GetComponent<TextMesh>().anchor = TextAnchor.LowerCenter;
             street.GetComponent<TextMesh>().alignment = TextAlignment.Center;
-            street.GetComponent<TextMesh>().transform.position = Vector3.Lerp(street.GetComponent<Street>().StartPoint, street.GetComponent<Street>().EndPoint, .5f);
-            street.GetComponent<TextMesh>().transform.position += new Vector3(0, 3, 0);
+            street.GetComponent<TextMesh>().lineSpacing = .9f;
         }
     }
 
@@ -115,18 +116,17 @@ public class InteractionManager : MonoBehaviour
 
         if (renderingNodeIDsAndPositions) return;
         renderingNodeIDsAndPositions = true;
-        /*
+        
         foreach (GameObject node in trafficManager.NodeList)
         {
             node.AddComponent<TextMesh>();
-            node.GetComponent<TextMesh>().text = node.GetComponent<Node>().NodeID.ToString() + node.GetComponent<Node>().Position.ToString();
+            node.GetComponent<TextMesh>().text = node.GetComponent<Node>().NodeID.ToString() +"\n"+ node.GetComponent<Node>().Position.ToString()+ "\n";
             node.GetComponent<TextMesh>().characterSize = .1f;
-            node.GetComponent<TextMesh>().fontSize = 150;
-            node.GetComponent<TextMesh>().anchor = TextAnchor.MiddleCenter;
+            node.GetComponent<TextMesh>().fontSize = 100;
+            node.GetComponent<TextMesh>().anchor = TextAnchor.LowerCenter;
             node.GetComponent<TextMesh>().alignment = TextAlignment.Center;
-            node.GetComponent<TextMesh>().transform.position = node.GetComponent<Node>().Position;
-            node.GetComponent<TextMesh>().transform.position += new Vector3(0, 3, 0);
-        }*/
+            node.GetComponent<TextMesh>().lineSpacing = .9f;
+        }
     }
 
 
