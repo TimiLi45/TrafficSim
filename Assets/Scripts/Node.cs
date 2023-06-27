@@ -53,6 +53,9 @@ public class Node : MonoBehaviour
         sphere.name = "NodeSphere";
         sphere.transform.parent = gameObject.transform;
         sphere.GetComponent<SphereCollider>().enabled = false;
+        // Add Node to Nodelist
+        trafficManager.NodeList.Add(this.GetComponent<Node>());
+
     }
 
     public void AddConnectedStreet(Street connectedStreet)
