@@ -10,18 +10,21 @@ public class InteractionManager : MonoBehaviour
 {
     [SerializeField, HideInInspector]
     TrafficManager trafficManager;
+    [SerializeField, HideInInspector]
+    Camera mainCamera;
 
     [SerializeField, HideInInspector]
     bool renderingWayPoints = false;
     [SerializeField, HideInInspector]
     bool renderingStreetIDs = false;
     [SerializeField, HideInInspector]
-    bool renderingNodePositions = false;
+    bool renderingNodeIDsAndPositions = false;
     [SerializeField, HideInInspector]
     List<GameObject> wayPointSpheres;
 
     void Awake()
     {
+        mainCamera = Camera.main;
         trafficManager = gameObject.GetComponent<TrafficManager>();
     }
 
@@ -34,7 +37,10 @@ public class InteractionManager : MonoBehaviour
     {
         RenderWaypoints();
         RenderStreetIDs();
-        RenderNodePositions();
+        RenderNodeIDsAndPositions();
+
+        RotateStreetIDs();
+        RotateNodeIDsAndPositions();
     }
 
     private void RenderWaypoints()
@@ -67,36 +73,75 @@ public class InteractionManager : MonoBehaviour
 
     private void RenderStreetIDs()
     {
-        if (!Keyboard.current.f3Key.isPressed)
+        if (!Keyboard.current.f3Key.isPressed && !renderingStreetIDs) return;
+        if (!Keyboard.current.f3Key.isPressed && renderingStreetIDs)
         {
+            foreach (GameObject street in trafficManager.StreetList)
+            {
+                    Destroy(street.GetComponent<TextMesh>());
+            }
             renderingStreetIDs = false;
             return;
-        }/*
+        }
+
         if (renderingStreetIDs) return;
         renderingStreetIDs = true;
+
         foreach (GameObject street in trafficManager.StreetList)
         {
-            Debug.Log("test");
-            Canvas canvas;
-            street.AddComponent<Canvas>();
-            canvas = street.GetComponent<Canvas>();
-            canvas.renderMode = RenderMode.WorldSpace;
-            canvas.transform.localScale = new(.01f, .01f, .01f);
-            canvas.transform.position += new Vector3(0, 2, 0);
+            street.AddComponent<TextMesh>();
+            street.GetComponent<TextMesh>().text = street.GetComponent<Street>().StreetID.ToString();
+            street.GetComponent<TextMesh>().characterSize = .1f;
+            street.GetComponent<TextMesh>().fontSize = 150;
+            street.GetComponent<TextMesh>().anchor = TextAnchor.MiddleCenter;
+            street.GetComponent<TextMesh>().alignment = TextAlignment.Center;
+            street.GetComponent<TextMesh>().transform.position = Vector3.Lerp(street.GetComponent<Street>().StartPoint, street.GetComponent<Street>().EndPoint, .5f);
+            street.GetComponent<TextMesh>().transform.position += new Vector3(0, 3, 0);
+        }
+    }
 
-            GameObject text = new GameObject();
-            text.transform.parent = street.transform;
-            text.name = street.GetComponent<Street>().StreetID.ToString();
+    private void RenderNodeIDsAndPositions()
+    {
+        /*if (!Keyboard.current.f3Key.isPressed && !renderingNodeIDsAndPositions) return;
+        if (!Keyboard.current.f3Key.isPressed && renderingStreetIDs)
+        {
+            foreach (GameObject street in trafficManager.StreetList)
+            {
+                Destroy(street.GetComponent<TextMesh>());
+            }
+            renderingStreetIDs = false;
+            return;
+        }
 
-            text.AddComponent<Text>();
-            text.GetComponent<Text>().text = street.GetComponent<Street>().StreetID.ToString();
-            text.GetComponent<Text>().fontSize = 100;
+        if (renderingStreetIDs) return;
+        renderingStreetIDs = true;
 
+        foreach (GameObject street in trafficManager.StreetList)
+        {
+            street.AddComponent<TextMesh>();
+            street.GetComponent<TextMesh>().text = street.GetComponent<Street>().StreetID.ToString()+;
+            street.GetComponent<TextMesh>().characterSize = .1f;
+            street.GetComponent<TextMesh>().fontSize = 150;
+            street.GetComponent<TextMesh>().anchor = TextAnchor.MiddleCenter;
+            street.GetComponent<TextMesh>().alignment = TextAlignment.Center;
+            street.GetComponent<TextMesh>().transform.position = Vector3.Lerp(street.GetComponent<Street>().StartPoint, street.GetComponent<Street>().EndPoint, .5f);
+            street.GetComponent<TextMesh>().transform.position += new Vector3(0, 3, 0);
         }*/
     }
 
-    private void RenderNodePositions()
+
+    private void RotateStreetIDs()
     {
-        if (!Keyboard.current.f3Key.isPressed) return;
+        if (!renderingStreetIDs) return;
+        foreach (GameObject street in trafficManager.StreetList)
+        {
+            if (street.GetComponent<TextMesh>() == null) continue;
+            street.GetComponent<TextMesh>().transform.rotation = Quaternion.LookRotation((street.GetComponent<TextMesh>().transform.position-mainCamera.transform.position).normalized);
+        }
+    }
+
+    private void RotateNodeIDsAndPositions()
+    {
+
     }
 }
