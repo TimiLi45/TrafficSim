@@ -10,19 +10,25 @@ using UnityEngine;
 
 public class TrafficManager : MonoBehaviour
 {
+    public GameObject trafficSignPrefab;
+
     [SerializeField]
     float nodeMergeDistance = 2.0f;
     [SerializeField]
-    float wayPointDistance = .3f;
+    float wayPointSpacing = .3f;
     [SerializeField]
     float wayPointSphereSize = .2f;
 
+    [SerializeField, HideInInspector]
     List<GameObject> streetList = new();
+    [SerializeField, HideInInspector]
     List<GameObject> carSpawnerList = new();
+    [SerializeField, HideInInspector]
+    List<GameObject> trafficSignList = new();
 
     public float WayPointDistance
     {
-        get { return wayPointDistance; }
+        get { return wayPointSpacing; }
     }
     public float WayPointSphereSize
     {
@@ -36,10 +42,15 @@ public class TrafficManager : MonoBehaviour
     {
         get { return carSpawnerList;}
     }
+    public List<GameObject> TrafficSignList
+    {
+        get { return trafficSignList; }
+    }
+    
     public void AddStreet(Vector3 startPoint, Vector3 endPoint)
     {
         GameObject street = new GameObject("Street");
-        street.AddComponent<Street>().GetData(this, startPoint, endPoint);
+        street.AddComponent<Street>().SetData(this, startPoint, endPoint);
         street.transform.SetParent(transform.Find("Streets").transform, true);
         streetList.Add(street);
         DetectAndGenerateIntersectionsOnStreet(street.GetComponent<Street>());
@@ -67,6 +78,16 @@ public class TrafficManager : MonoBehaviour
             Debug.Log("No Location Found for Car Spawner");
         }
     }
+
+    public void AddTrafficSign(Vector3 position, TrafficSignTypes type, int trafficSignValue, Quaternion rotation)
+    {
+        GameObject trafficSign = Instantiate(trafficSignPrefab, new(position.x,0.4f,position.z), Quaternion.identity);
+        trafficSign.transform.rotation = rotation;
+        trafficSign.GetComponent<TrafficSign>().GetData(type, trafficSignValue);
+        trafficSignList.Add(trafficSign);
+        trafficSign.transform.SetParent(transform.Find("TrafficSigns").transform, true);
+    }
+
     public void DetectAndGenerateIntersectionsOnStreet(Street streetToSearch)
     {
         foreach (GameObject street in streetList)
@@ -90,22 +111,24 @@ public class TrafficManager : MonoBehaviour
 
     public void GenerateIntersection(GameObject firstStreet, GameObject secondStreet, Vector3 intersectionPosition)
     {
+        // I have to save all street start/end locations, because if I don't delete the streets first,
+        // they will generate new intersections with the newly generated streets. Not clean whatsoever. Don't care.
         Vector3 positionA = firstStreet.GetComponent<Street>().StartNode.GetComponent<Node>().Position;
         Vector3 positionB = firstStreet.GetComponent<Street>().EndNode.GetComponent<Node>().Position;
         Vector3 positionC = secondStreet.GetComponent<Street>().StartNode.GetComponent<Node>().Position;
         Vector3 positionD = secondStreet.GetComponent<Street>().EndNode.GetComponent<Node>().Position;
-        DeleteStreet(firstStreet, false);
-        DeleteStreet(secondStreet, false);
+        DeleteStreet(firstStreet);
+        DeleteStreet(secondStreet);
         AddStreet(positionA, intersectionPosition);
         AddStreet(positionB, intersectionPosition);
         AddStreet(positionC, intersectionPosition);
         AddStreet(positionD, intersectionPosition);
     }
 
-    public void DeleteStreet(GameObject street, bool doDeleteNodes = false)
+    public void DeleteStreet(GameObject street)
     {
-        street.GetComponent<Street>().DeleteStreetContents(doDeleteNodes);
-        streetList.RemoveAll(streetThis => streetThis.Equals(street));
+        street.GetComponent<Street>().DeleteStreetContents();
+        streetList.Remove(street);
         Destroy(street);
     }
 
@@ -121,6 +144,15 @@ public class TrafficManager : MonoBehaviour
         return null;
     }
 
+    public GameObject FindCarSpawnerWithPosition(Vector3 Position)
+    {
+        foreach (GameObject carSpawner in carSpawnerList)
+        {
+            if (carSpawner.GetComponent<CarSpawner>().Position == Position) return carSpawner;
+        }
+        return null;
+    }
+
     public GameObject FindCarSpawnerInRange(Vector3 Position, float range)
     {
         foreach (GameObject carSpawner in carSpawnerList)
@@ -130,11 +162,14 @@ public class TrafficManager : MonoBehaviour
         return null;
     }
 
-    public GameObject FindCarSpawnerWithPosition(Vector3 Position)
+    public GameObject FindStreetInRange(Vector3 Position, float range)
     {
-        foreach (GameObject carSpawner in carSpawnerList)
+        foreach(GameObject street in streetList)
         {
-            if (carSpawner.GetComponent<CarSpawner>().Position == Position) return carSpawner;
+            foreach(Vector3 wayPoint in street.GetComponent<Street>().WayPoints)
+            {
+                if(IsInDistance(wayPoint, Position, range)) return street;
+            }
         }
         return null;
     }

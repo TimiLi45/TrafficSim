@@ -6,19 +6,23 @@ using UnityEngine.InputSystem;
 using System;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
+using UnityEngine.EventSystems;
 
 public enum BuildableTypes
 {
-    Crossroad,
     BezierCurve,
     Straight,
-    CarSpawner
+    CarSpawner,
+    TrafficSign
 }
 
 public class PartBuilder : MonoBehaviour
 {
     [SerializeField]
     float minStreetLength = 1.5f;
+
+    [SerializeField]
+    float trafficSignStreetDetectionDistance = 3.5f;
 
     [SerializeField, HideInInspector]
     TrafficManager trafficManager;
@@ -35,12 +39,20 @@ public class PartBuilder : MonoBehaviour
     BuildableTypes currentlySelectedType = BuildableTypes.Straight;
 
     [SerializeField, HideInInspector]
+    TrafficSignTypes currentlySelectedTrafficSignType = TrafficSignTypes.maxSpeed;
+
+    [SerializeField, HideInInspector]
+    int currentlySelectedTrafficSignValue = 0;
+
+    [SerializeField, HideInInspector]
     bool isDragging = false;
 
     [SerializeField, HideInInspector]
     Vector3 mousePositionInGame;
 
+    [SerializeField, HideInInspector]
     Vector3 startDrag;
+    [SerializeField, HideInInspector]
     Vector3 endDrag;
 
     Plane plane = new Plane(Vector3.up, 0);
@@ -48,7 +60,7 @@ public class PartBuilder : MonoBehaviour
     public BuildableTypes CurrentlySelectedType
     {
         get { return currentlySelectedType; }
-        set { currentlySelectedType = value; }
+        set { currentlySelectedType = value; } // I don't think this is needed, but I'm too scared to remove it. Will remove in school, where I can see if it is referenced somewhere.
     } 
 
     public void SetCurrentlySelectedTypebyInt(int ID)
@@ -64,6 +76,38 @@ public class PartBuilder : MonoBehaviour
             case 2:
                 currentlySelectedType = BuildableTypes.CarSpawner;
                 break;
+            case 3:
+                currentlySelectedType = BuildableTypes.TrafficSign;
+                break;
+        }
+    }
+
+    public void SetCurrentlySelectedTrafficSignTypeByInt(int ID)
+    {
+        switch (ID)
+        {
+            case 0:
+                currentlySelectedTrafficSignType = TrafficSignTypes.maxSpeed;
+                break;
+            case 1:
+                currentlySelectedTrafficSignType = TrafficSignTypes.forceStreet;
+                break;
+            case 2:
+                currentlySelectedTrafficSignType = TrafficSignTypes.stop;
+                break;
+        }
+    }
+
+    public void SetCurrentlySelectedTrafficSignValueByString(string value)
+    {
+        try
+        {
+            currentlySelectedTrafficSignValue = Convert.ToInt32 (value);
+        }
+        catch
+        {
+            currentlySelectedTrafficSignValue = 0;
+            Debug.Log("Please input an int, not a string.");
         }
     }
 
@@ -77,9 +121,10 @@ public class PartBuilder : MonoBehaviour
     {
         BuildPart();
         if (isDragging)
-            Drag();
+            DragPlaceStreet();
     }
-    private void Drag()
+
+    private void DragPlaceStreet()
     {
         if (Mouse.current.leftButton.isPressed)
             return;
@@ -96,15 +141,11 @@ public class PartBuilder : MonoBehaviour
 
     private void BuildPart()
     {
-        if (!Mouse.current.leftButton.wasPressedThisFrame)
+        if (!Mouse.current.leftButton.wasPressedThisFrame || EventSystem.current.IsPointerOverGameObject())
             return;
 
         switch (currentlySelectedType)
         {
-            case BuildableTypes.Crossroad:
-                break;
-            case BuildableTypes.BezierCurve:
-                break;
             case BuildableTypes.Straight:
                 GetMousePosition();
                 isDragging = true;
@@ -112,6 +153,9 @@ public class PartBuilder : MonoBehaviour
                 break;
             case BuildableTypes.CarSpawner:
                 PlaceCarSpawner();
+                break;
+            case BuildableTypes.TrafficSign:
+                PlaceTrafficSign();
                 break;
         }
     }
@@ -137,5 +181,23 @@ public class PartBuilder : MonoBehaviour
     {
         Vector3 placePosition = GetMousePosition();
         trafficManager.AddCarSpawner(placePosition);
+    }
+
+    private void PlaceTrafficSign()
+    {
+        Vector3 placePosition = GetMousePosition();
+        Quaternion rotation;
+        if(trafficManager.FindStreetInRange(placePosition, trafficSignStreetDetectionDistance) != null)
+        {
+            GameObject streetInRange = trafficManager.FindStreetInRange(placePosition, trafficSignStreetDetectionDistance);
+            rotation = Quaternion.LookRotation((streetInRange.GetComponent<Street>().StartPoint - streetInRange.GetComponent<Street>().EndPoint).normalized);
+        }
+        else
+        {
+            rotation = Quaternion.LookRotation((mainCamera.transform.position - placePosition).normalized);
+        }
+        rotation.x = 0; // I didn't find any better way of setting JUST the y rotation, that I liked better than this,
+        rotation.z = 0; // so I had to reset the x and z rotation, it however does not matter, so.. too bad!
+        trafficManager.AddTrafficSign(placePosition, currentlySelectedTrafficSignType, currentlySelectedTrafficSignValue, rotation);
     }
 }

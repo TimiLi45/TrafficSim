@@ -8,16 +8,22 @@ using UnityEngine.InputSystem.HID;
 
 public class Node : MonoBehaviour
 {
+    [SerializeField, HideInInspector]
     TrafficManager trafficManager;
 
+    [SerializeField, HideInInspector]
     private static int currentNodeID = 0;
 
+    [SerializeField, HideInInspector]
     int nodeID;
 
+    [SerializeField, HideInInspector]
     List<Street> connectedStreets;
 
+    [SerializeField, HideInInspector]
     Vector3 position;
 
+    [SerializeField, HideInInspector]
     GameObject sphere;
 
     public int NodeID
@@ -33,12 +39,14 @@ public class Node : MonoBehaviour
     {
         get { return position; }
     }
-    public void GetData(TrafficManager trafficManager ,Vector3 position)
+    
+    public void SetData(TrafficManager trafficManager ,Vector3 position)
     {
         connectedStreets = new List<Street>();
         this.trafficManager = trafficManager;
         nodeID = currentNodeID++;
         this.position = position;
+        // The sphere for rendering Nodes is generated here for now, since later it won't be done in this class at all, but in the InteractionManager as a Debug Render.
         sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         sphere.transform.position = position;
         sphere.layer = LayerMask.NameToLayer("Ignore Raycast");

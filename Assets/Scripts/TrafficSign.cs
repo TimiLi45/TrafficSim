@@ -3,69 +3,53 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Unity.VisualScripting;
 using UnityEngine;
+public enum TrafficSignTypes
+{
+    maxSpeed,
+    forceStreet,
+    stop
+}
 
 public class TrafficSign : MonoBehaviour
 {
-
     [SerializeField]
-    int newMaxSpeed = 100;
-    [SerializeField]
-    int newStreet = -1;
+    int value = 0;
     [SerializeField]
     int nodeID = -1;
-
-    enum Sign
-    {
-        maxSpeed,
-        forceStreet,
-        STOP,
-        dijkstra
-
-    }
-
+    
     [SerializeField]
-    Sign sign = Sign.maxSpeed;
+    TrafficSignTypes selectedType = TrafficSignTypes.maxSpeed;
+
+    public void GetData(TrafficSignTypes type, int value)
+    {
+        selectedType = type;
+        this.value = value;
+    }
 
     private void OnTriggerEnter(Collider collider)
     {
-        Car carComponente = collider.gameObject.GetComponent<Car>();
+        Car collidedCar = collider.gameObject.GetComponent<Car>();
+        if (collidedCar == null) return;
 
-        if (carComponente != null ) 
+        switch (selectedType)
         {
-           switch (sign){
-                case Sign.maxSpeed:
-                    carComponente.SetMaxSpeed(newMaxSpeed);
-                    break;
-                case Sign.forceStreet:
-                    carComponente.ForcesStreetID = newStreet;
-                    break;
-                case Sign.STOP:
-                    carComponente.Stop();
-                    break;
-                case Sign.dijkstra:
-                    carComponente.Dijkstra(nodeID);
-                    
-
-
-            }
-
+            case TrafficSignTypes.maxSpeed:
+                collidedCar.SetMaxSpeed(value);
+                break;
+            case TrafficSignTypes.forceStreet:
+                collidedCar.ForcesStreetID = value;
+                break;
+            case TrafficSignTypes.stop:
+                //collidedCar.Stop();
+                break;
+            //case TrafficSignTypes.dijkstra:
+            //    collidedCar.Dijkstra(nodeID);
+            //    break;
         }
-        
     }
-
-
-
-
-
-
 
     private void Start()
     {
         Collider[] colliders = GetComponentsInChildren<Collider>();
-
-        Debug.Log(colliders.Length);
-
-
-
     }
 }

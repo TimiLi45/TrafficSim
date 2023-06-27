@@ -6,21 +6,30 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 public class Street : MonoBehaviour
 {
+    [SerializeField, HideInInspector]
     TrafficManager trafficManager;
 
+    [SerializeField, HideInInspector]
     private static int currentStreetID = 0;
 
+    [SerializeField, HideInInspector]
     int streetID;
 
+    [SerializeField, HideInInspector]
     public float cost;
-
+    [SerializeField, HideInInspector]
     Vector3 startPoint;
+    [SerializeField, HideInInspector]
     Vector3 endPoint;
+    [SerializeField, HideInInspector]
     List<Vector3> wayPoints;
 
+    [SerializeField, HideInInspector]
     GameObject startNode;
+    [SerializeField, HideInInspector]
     GameObject endNode;
 
+    [SerializeField, HideInInspector]
     GameObject streetLine;
   
     public int StreetID
@@ -47,7 +56,7 @@ public class Street : MonoBehaviour
     {
         get { return endNode; }
     }
-    public void GetData(TrafficManager trafficManager, Vector3 startPoint, Vector3 endPoint)
+    public void SetData(TrafficManager trafficManager, Vector3 startPoint, Vector3 endPoint)
     {
         this.trafficManager = trafficManager;
         this.startPoint = startPoint;
@@ -55,6 +64,12 @@ public class Street : MonoBehaviour
         wayPoints = new List<Vector3>();
         streetLine = new GameObject();
         streetID = currentStreetID++;
+        // I have to check if I should generate WayPoints and the start and end of the street,
+        // because if the street connects to another noder, it already has a WayPoint at that location.
+        // I don't want to call GenerateWayPoints from GenerateNodes, so I have to have external variables.
+        // In order to set 2 variables with 1 method call, I'm setting the variables via reference.
+        // This is not clean code. This is not good practice. It is what it is.
+        // I don't have time to search for a better solution.
         bool generateStartWayPoint = false;
         bool generateEndWayPoint = false;
 
@@ -63,6 +78,9 @@ public class Street : MonoBehaviour
         GenerateNodes(ref generateStartWayPoint, ref generateEndWayPoint);
         GenerateWayPoints(trafficManager.WayPointDistance, generateStartWayPoint, generateEndWayPoint);
 
+        // I'm setting the start and end Point a second time here, because the Nodes may have merged with different Nodes,
+        // in turn changeing their positions a bit. It's fine like this, at the beginning these Points are just for creating
+        // the Nodes, now they can be called as an alternative to the Node position. This call is shorter and therefore better.
         this.startPoint = startNode.GetComponent<Node>().Position;
         this.endPoint = endNode.GetComponent<Node>().Position;
 
@@ -74,7 +92,7 @@ public class Street : MonoBehaviour
         if (trafficManager.FindNodeWithPosition(startPoint) == null)
         {
             startNode = new GameObject("Node");
-            startNode.AddComponent<Node>().GetData(trafficManager, startPoint);
+            startNode.AddComponent<Node>().SetData(trafficManager, startPoint);
             startNode.transform.SetParent(trafficManager.transform.Find("Nodes").transform, true);
             generateStartWayPoint = true;
         }
@@ -83,7 +101,7 @@ public class Street : MonoBehaviour
         if (trafficManager.FindNodeWithPosition(endPoint) == null)
         {
             endNode = new GameObject("Node");
-            endNode.AddComponent<Node>().GetData(trafficManager, endPoint);
+            endNode.AddComponent<Node>().SetData(trafficManager, endPoint);
             endNode.transform.SetParent(trafficManager.transform.Find("Nodes").transform, true);
             generateEndWayPoint = true;
         }
@@ -107,6 +125,7 @@ public class Street : MonoBehaviour
 
     private void GenerateModel()
     {
+        // Currently the model is just a line, will be changed later.
         LineRenderer renderedLine = streetLine.AddComponent<LineRenderer>();
         renderedLine.SetPosition(0, this.startPoint);
         renderedLine.SetPosition(1, this.endPoint);
@@ -114,23 +133,25 @@ public class Street : MonoBehaviour
         streetLine.transform.parent = gameObject.transform;
     }
 
-    public void DeleteStreetContents(bool doDeleteNodes)
+    public void DeleteStreetContents()
     {
         DeleteWayPoints();
         startNode.GetComponent<Node>().RemoveConnectedStreet(this);
         endNode.GetComponent<Node>().RemoveConnectedStreet(this);
-        if (doDeleteNodes)DeleteNodes();
+        DeleteNodes();
         DeleteLine();
     }
     private void DeleteNodes()
     {
-        if (startNode.GetComponent<Node>().ConnectedStreets.Count <= 1)
+        if (startNode.GetComponent<Node>().ConnectedStreets.Count < 1)
         {
             startNode.GetComponent<Node>().DeleteSphere();
+            Destroy(startNode);
         }
-        if (endNode.GetComponent<Node>().ConnectedStreets.Count <= 1)
+        if (endNode.GetComponent<Node>().ConnectedStreets.Count < 1)
         {
             endNode.GetComponent<Node>().DeleteSphere();
+            Destroy(endNode);
         }
     }
     private void DeleteWayPoints()
