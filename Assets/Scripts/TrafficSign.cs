@@ -14,7 +14,9 @@ public class TrafficSign : MonoBehaviour
 {
     [SerializeField]
     int value = 0;
-
+    [SerializeField]
+    int nodeID = -1;
+    
     [SerializeField]
     TrafficSignTypes selectedType = TrafficSignTypes.maxSpeed;
 

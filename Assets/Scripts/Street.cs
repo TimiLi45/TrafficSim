@@ -16,6 +16,8 @@ public class Street : MonoBehaviour
     int streetID;
 
     [SerializeField, HideInInspector]
+    public float cost;
+    [SerializeField, HideInInspector]
     Vector3 startPoint;
     [SerializeField, HideInInspector]
     Vector3 endPoint;
@@ -70,6 +72,8 @@ public class Street : MonoBehaviour
         // I don't have time to search for a better solution.
         bool generateStartWayPoint = false;
         bool generateEndWayPoint = false;
+
+        cost = Vector3.Distance(startPoint, endPoint);
 
         GenerateNodes(ref generateStartWayPoint, ref generateEndWayPoint);
         GenerateWayPoints(trafficManager.WayPointDistance, generateStartWayPoint, generateEndWayPoint);
