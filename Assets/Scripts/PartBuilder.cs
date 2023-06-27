@@ -93,7 +93,7 @@ public class PartBuilder : MonoBehaviour
                 currentlySelectedTrafficSignType = TrafficSignTypes.forceStreet;
                 break;
             case 2:
-                currentlySelectedTrafficSignType = TrafficSignTypes.stop;
+                currentlySelectedTrafficSignType = TrafficSignTypes.STOP;
                 break;
         }
     }
