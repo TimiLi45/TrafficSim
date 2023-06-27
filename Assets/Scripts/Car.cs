@@ -337,24 +337,43 @@ public class Car : MonoBehaviour
     public void Dijkstra(int nodeID)
     {
         Debug.Log(trafficManager.GetComponent<TrafficManager>().NodeList.Count);
+        //Pathlist startEntry = new Pathlist();
+        //startEntry.TargetNode = currentEndNode.GetComponent<Node>();
+        //startEntry.PreviousNode = null;
+        //startEntry.Cost = 0;
+        //listOfPaths.Add(startEntry);
 
+        // erstelle eine Liste mit den jeweils kürzersten routen zwischen 2 Punkten
         foreach (GameObject item in trafficManager.GetComponent<TrafficManager>().NodeList)
         {
             FindNodsFromNode(item.GetComponent<Node>());
         }
-        
-        
+        foreach (var item in listOfPaths)
+        {
+            if (item.PreviousNode != null)
+                Debug.Log("TaretNode: " + item.TargetNode.GetComponent<Node>().NodeID + " with Cost: " + item.Cost + "over Node: " + item.PreviousNode.GetComponent<Node>().NodeID);
+        }
+
+
         // Fügt die jetzige Node den untersuchten hinzu u
-        Node currentViewdNode = null;
-        int safty = 100;
-        Pathlist startEntry = new Pathlist();
-        startEntry.TargetNode = currentEndNode.GetComponent<Node>();
-        startEntry.PreviousNode = null;
-        startEntry.Cost = 0;
-        listOfPaths.Add(startEntry);
+        int safty = 7;
+        int targetNodeID = nodeID;
+        float pathCost = 0;
+        Node currentViewdNode = FindNoteinPathlist(targetNodeID);
+        List<Node> pathRevers = new List<Node>();
+        
         FindNodsFromNode(currentEndNode.GetComponent<Node>());
 
+        do
+        {
+            pathCost = pathCost + PathCost(targetNodeID);
+            Debug.Log(pathCost);
+            currentViewdNode = FindNoteinPathlist(targetNodeID);
 
+
+
+            safty--;
+        } while (nodeID != currentViewdNode.GetComponent<Node>().NodeID && safty > 0);
 
 
         //// Finde Die Erste Node die sich angeschaut werden sollte
@@ -387,16 +406,6 @@ public class Car : MonoBehaviour
         //    safty--;
         //} while (nodeID != currentViewdNode.GetComponent<Node>().NodeID && safty > 0);
 
-
-
-        foreach (var item in listOfPaths)
-        {
-
-            if (item.PreviousNode != null)
-                Debug.Log("TaretNode: " + item.TargetNode.GetComponent<Node>().NodeID + " with Cost: " + item.Cost +  "over Node: " +item.PreviousNode.GetComponent<Node>().NodeID);
-            Debug.Log("");
-         
-        }
     }
 
     public void FindNodsFromNode(Node node)
@@ -466,6 +475,30 @@ public class Car : MonoBehaviour
 
     }
 
-    
+    public Node FindNoteinPathlist(int targetNodeID)
+    {
+        foreach (Pathlist item in listOfPaths)
+        {
+            if (item.TargetNode.GetComponent<Node>().NodeID == targetNodeID)
+            {
+                return item.PreviousNode.GetComponent<Node>();
+            }
+              
+        }
+        return null;
+    }
+
+    public float PathCost(int targetNodeID)
+    {
+        foreach (var item in listOfPaths)
+        {
+            if (item.TargetNode.NodeID == targetNodeID)
+            {
+                return item.Cost;
+            }
+
+        }
+        return 0f;
+    }
 
 }
