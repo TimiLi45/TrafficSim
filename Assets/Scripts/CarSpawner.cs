@@ -3,26 +3,29 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Unity.Collections;
 using Unity.VisualScripting;
-using UnityEditorInternal;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 public class CarSpawner  : MonoBehaviour 
 {
+    [SerializeField, HideInInspector]
     GameObject trafficManager;
+    [SerializeField, HideInInspector]
     Node connectedNode;
+    [SerializeField, HideInInspector]
     Vector3 position;
+    [SerializeField, HideInInspector]
     private float timeRemaining = 3;
 
     public Vector3 Position
     {
         get { return position; }
     }
-    public void GetData(GameObject trafficManager, Vector3 position)
+    public void SetData(GameObject trafficManager, Vector3 position)
     {
         this.trafficManager = trafficManager;
         this.position = position;
         connectedNode = trafficManager.GetComponent<TrafficManager>().FindNodeWithPosition(position).GetComponent<Node>();
+        // debug model, may be replaced later, or removed
         GameObject cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         cylinder.transform.position = connectedNode.Position;
         cylinder.name = "CarSpawnerCylinder";
@@ -42,17 +45,16 @@ public class CarSpawner  : MonoBehaviour
             SpawnCar();
         }
         if (!trafficManager.GetComponent<TrafficManager>().FindNodeWithPosition(position).Equals(connectedNode))
-        {
             connectedNode = trafficManager.GetComponent<TrafficManager>().FindNodeWithPosition(position).GetComponent<Node>();
-        }
+        if (connectedNode == null) trafficManager.GetComponent<TrafficManager>().DeleteCarSpawner(gameObject);
     }   
 
     private void SpawnCar()
     {
         if (connectedNode == null) return;
         
-        GameObject car = new GameObject("Car");
-        car.AddComponent<Car>().GetData(trafficManager, connectedNode);
+        GameObject car = new("Car");
+        car.AddComponent<Car>().SetData(trafficManager, connectedNode);
         car.transform.SetParent(trafficManager.transform.Find("Cars"), true);
     }
 }

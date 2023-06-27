@@ -1,11 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
-using UnityEngine.UIElements;
-using static UnityEditor.Experimental.GraphView.GraphView;
 
 public class InteractionManager : MonoBehaviour
 {

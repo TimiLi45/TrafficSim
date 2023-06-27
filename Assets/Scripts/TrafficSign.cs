@@ -13,15 +13,13 @@ public enum TrafficSignTypes
 
 public class TrafficSign : MonoBehaviour
 {
-    [SerializeField]
+    [SerializeField, HideInInspector]
     int value = 0;
-    [SerializeField]
-    int nodeID = -1;
     
-    [SerializeField]
+    [SerializeField, HideInInspector]
     TrafficSignTypes selectedType = TrafficSignTypes.maxSpeed;
 
-    public void GetData(TrafficSignTypes type, int value)
+    public void SetData(TrafficSignTypes type, int value)
     {
         selectedType = type;
         this.value = value;
@@ -35,22 +33,17 @@ public class TrafficSign : MonoBehaviour
         switch (selectedType)
         {
             case TrafficSignTypes.maxSpeed:
-                collidedCar.SetMaxSpeed(value);
+                collidedCar.MaxSpeed = value;
                 break;
             case TrafficSignTypes.forceStreet:
-                collidedCar.ForcesStreetID = value;
+                collidedCar.ForcedStreetID = value;
                 break;
             case TrafficSignTypes.STOP:
-                collidedCar.Stop();
+                collidedCar.CurrentBehaviour = CarBehaviour.stop;
                 break;
             case TrafficSignTypes.Dijkstra:
                 collidedCar.Dijkstra(value);
                 break;
         }
-    }
-
-    private void Start()
-    {
-        Collider[] colliders = GetComponentsInChildren<Collider>();
     }
 }

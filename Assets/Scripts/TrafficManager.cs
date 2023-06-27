@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
 using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class TrafficManager : MonoBehaviour
@@ -55,7 +54,7 @@ public class TrafficManager : MonoBehaviour
     
     public void AddStreet(Vector3 startPoint, Vector3 endPoint)
     {
-        GameObject street = new GameObject("Street");
+        GameObject street = new("Street");
         street.transform.position = Vector3.Lerp(startPoint, endPoint, .5f);
         street.AddComponent<Street>().SetData(this, startPoint, endPoint);
         street.transform.SetParent(transform.Find("Streets").transform, true);
@@ -71,9 +70,9 @@ public class TrafficManager : MonoBehaviour
         {
             if (IsInDistance(position, street.GetComponent<Street>().StartNode.GetComponent<Node>().Position, nodeMergeDistance))
             {
-                GameObject carSpawner = new GameObject();
+                GameObject carSpawner = new();
                 carSpawner.transform.position = position;
-                carSpawner.AddComponent<CarSpawner>().GetData(gameObject, position);
+                carSpawner.AddComponent<CarSpawner>().SetData(gameObject, position);
                 carSpawner.name = "CarSpawner";
                 carSpawner.transform.SetParent(transform.Find("CarSpawner").transform, true);
                 carSpawnerList.Add(carSpawner);
@@ -91,7 +90,7 @@ public class TrafficManager : MonoBehaviour
     {
         GameObject trafficSign = Instantiate(trafficSignPrefab, new(position.x,0.4f,position.z), Quaternion.identity);
         trafficSign.transform.rotation = rotation;
-        trafficSign.GetComponent<TrafficSign>().GetData(type, trafficSignValue);
+        trafficSign.GetComponent<TrafficSign>().SetData(type, trafficSignValue);
         trafficSignList.Add(trafficSign);
         trafficSign.transform.SetParent(transform.Find("TrafficSigns").transform, true);
     }

@@ -1,27 +1,12 @@
-using JetBrains.Annotations;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Runtime.ConstrainedExecution;
-using System.Xml.Serialization;
 using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
-using UnityEditor.MemoryProfiler;
 using UnityEngine;
-using UnityEngine.Assertions.Must;
-using UnityEngine.InputSystem;
-using UnityEngine.UIElements;
-using UnityEngine.XR;
-using static UnityEditor.PlayerSettings;
-using static UnityEditor.Progress;
 using Debug = UnityEngine.Debug;
 using Random = System.Random;
 
-//Dijkstra
-public struct Pathlist
+public struct Path
 {
     private Node targetNode;
     private float cost;
@@ -29,132 +14,154 @@ public struct Pathlist
 
     public Node TargetNode
     {
-        get { return targetNode; }
+        readonly get { return targetNode; }
         set { targetNode = value; }
     }
     public float Cost
     {
-        get { return cost; }
+        readonly get { return cost; }
         set { cost = value; }
     }
     public Node PreviousNode
     {
-        get { return previousNode; }
+        readonly get { return previousNode; }
         set { previousNode = value; }
     }
-    
+}
+
+public enum CarBehaviour
+{
+    none,
+    drive,
+    stop
 }
 
 public class Car : MonoBehaviour
 {
+    [SerializeField, HideInInspector]
     GameObject trafficManager;
-    enum Verhalten
-    {
-        none,
-        drive,
-        stop,
 
-    }
-    Verhalten _verhalten = Verhalten.none;
+    [SerializeField, HideInInspector]
+    CarBehaviour currentBehaviour = CarBehaviour.none;
 
+    [SerializeField, HideInInspector]
     GameObject cube;
+    [SerializeField, HideInInspector]
     BoxCollider boxCollider;
 
-    bool lastRound = false;
+    [SerializeField, HideInInspector]
     float stopTimeLeft = 1f;
+    [SerializeField, HideInInspector]
     float acceleration = .05f;
+    [SerializeField, HideInInspector]
     float deceleration = 0.1f;
+    [SerializeField, HideInInspector]
     float speed = 0f;
-    float maxDistanceFront = 1f;
-    int maxSpeed = 10;
-    int currentListPosition = -1;
-    int forcesStreetID = -1;
+    [SerializeField, HideInInspector]
+    float maxSpeed = 10f;
+    [SerializeField, HideInInspector]
+    float maxDistanceFromNextNodeBeforeSwitching = 1f;
+    [SerializeField, HideInInspector]
+    int currentWayPointListPosition;
+    [SerializeField, HideInInspector]
+    int forcedStreetID;
 
 
-    public int ForcesStreetID
-    {
-        get { return forcesStreetID; }
-        set { forcesStreetID = value; }
-    }
-
-
+    [SerializeField, HideInInspector]
     Vector3 targetLocation;
-    List<Vector3> Waypoints = new List<Vector3>();
+    [SerializeField, HideInInspector]
+    List<Vector3> Waypoints = new();
 
-    //Street
+
+    [SerializeField, HideInInspector]
     Street lastStreet;
+    [SerializeField, HideInInspector]
     Street currentStreet;
-    List<Street> visitedStreets = new List<Street>();
-    //Nodes
+    [SerializeField, HideInInspector]
+    List<Street> visitedStreets = new();
+
+    [SerializeField, HideInInspector]
     Node currentStartNode;
+    [SerializeField, HideInInspector]
     Node lastStartNode;
+    [SerializeField, HideInInspector]
     Node currentEndNode;
+    [SerializeField, HideInInspector]
     Node lastEndNode;
 
 
+    [SerializeField, HideInInspector]
+    List<Node> notVisitedNodes = new();
+    [SerializeField, HideInInspector]
+    List<Node> visitedNodes = new();
 
-    List<Node> notVisitedNodes = new List<Node>();
-    List<Node> visitedNodes = new List<Node>();
-
-    List<Pathlist> listOfPaths = new List<Pathlist>();
+    [SerializeField, HideInInspector]
+    List<Path> pathList = new();
 
 
-    public void GetData(GameObject trafficManager, Node startNode)
+    public int ForcedStreetID
     {
+        get { return forcedStreetID; }
+        set { forcedStreetID = value; }
+    }
+    public float MaxSpeed
+    {
+        get { return maxSpeed; }
+        set { maxSpeed = value; }
+    }
+    public CarBehaviour CurrentBehaviour
+    {
+        get { return currentBehaviour; }
+        set { currentBehaviour = value; }
+    }
 
-        if (startNode == null) DeleteCar();
+    public void SetData(GameObject trafficManager, Node startNode)
+    {
+        if (startNode == null) DeleteSelf();
         this.trafficManager = trafficManager;
 
-        for (int i = 0; i < startNode.ConnectedStreets.Count; i++)
+        foreach (Street connectedStreet in startNode.ConnectedStreets)
         {
-            if (startNode.ConnectedStreets[i] != null)
+            if (connectedStreet == null) continue;
+            currentStreet = connectedStreet;
+
+            if (currentStreet.StartNode.Equals(startNode.gameObject))
             {
-                currentStreet = startNode.ConnectedStreets[i];
-                if (currentStreet.StartNode.GetComponent<Node>().Equals(startNode))
-                {
-                    transform.position = currentStreet.StartNode.GetComponent<Node>().Position;
-                    targetLocation = currentStreet.EndNode.GetComponent<Node>().Position;
-                    break;
-                }
+                transform.position = currentStreet.StartNode.GetComponent<Node>().Position;
+                targetLocation = currentStreet.EndNode.GetComponent<Node>().Position;
+                break;
             }
         }
-        if (currentStreet == null) DeleteCar();
+        if (currentStreet == null) DeleteSelf();
+
         AddMesh();
-        _verhalten = Verhalten.drive;
+        currentBehaviour = CarBehaviour.drive;
     }
 
     private void Update()
     {
-
-
-
-
-        switch (_verhalten)
+        switch (currentBehaviour)
         {
-            case Verhalten.none: break;
-            case Verhalten.drive:
+            case CarBehaviour.none:
+                break;
+            case CarBehaviour.drive:
+                Accelerate();
+                break;
+            case CarBehaviour.stop:
+                Decelerate();
+                if (stopTimeLeft <= 0f && speed <= 0f)
                 {
-                    Acceleration();
-                    break;
+                    currentBehaviour = CarBehaviour.drive;
+                    stopTimeLeft = 1f;
                 }
-            case Verhalten.stop:
+                else
                 {
-                    Deceleration();
-                    if (stopTimeLeft <= 0f && speed <= 0f)
-                    {
-                        _verhalten = Verhalten.drive;
-                        stopTimeLeft = 1f;
-                    }
-                    else
-                    {
-                        stopTimeLeft -= Time.deltaTime;
-                    }
-
-                    break;
+                    stopTimeLeft -= Time.deltaTime;
                 }
+                break;
         }
 
-        //Sp�ter durch model ersetzen
+        // replace later with model
         if (cube != null)
         {
             cube.transform.position = transform.position;
@@ -162,102 +169,9 @@ public class Car : MonoBehaviour
         }
 
         transform.position = Vector3.MoveTowards(transform.position, targetLocation, speed * Time.deltaTime);
-        if (Vector3.Distance(transform.position, targetLocation) < maxDistanceFront)
-        {
-            NextWaypoint();
-        }
 
-        if (currentStreet == null)
-            DeleteCar();
-    }
-
-    private void FindPath()
-    {
-        if (lastRound)
-        {
-            DeleteCar();
-        }
-        else
-        {
-            lastStreet = currentStreet;
-            lastStartNode = currentStartNode;
-            lastEndNode = currentEndNode;
-            currentStreet = FindStreetOnCurrentStreet();
-            if (currentStreet == lastStreet)
-            {
-                DeleteCar();
-            }
-            visitedStreets.Add(currentStreet);
-            if (currentStreet != null)
-            {
-                currentStartNode = currentStreet.StartNode.GetComponent<Node>();
-                currentEndNode = currentStreet.EndNode.GetComponent<Node>();
-                if (currentStreet == lastStreet)
-                {
-                    DeleteCar();
-                }
-
-            }
-            else
-            {
-                DeleteCar();
-            }
-        }
-
-        if (currentStreet == null)
-        {
-            lastRound = true;
-        }
-        else
-        {
-            Waypoints.Clear();
-            Waypoints.Add(currentStreet.StartNode.GetComponent<Node>().Position);
-            Waypoints.Add(currentStreet.EndNode.GetComponent<Node>().Position);
-        }
-
-    }
-
-    private void NextWaypoint()
-    {
-        if (currentListPosition + 1 < Waypoints.Count)
-        {
-            currentListPosition++;
-            targetLocation = Waypoints[currentListPosition];
-        }
-        else
-        {
-            FindPath();
-
-            if (currentStreet != null)
-            {
-                targetLocation = Waypoints[0];
-                currentListPosition = 0;
-            }
-        }
-    }
-
-    private void Acceleration()
-    {
-        if (speed < maxSpeed)
-        {
-            speed = speed + acceleration;
-        }
-        else
-        {
-            speed = speed - deceleration;
-        }
-    }
-
-    private void Deceleration()
-    {
-        if (speed > 0)
-        {
-            speed = speed - deceleration;
-            if (speed < 0)
-            {
-                speed = 0;
-            }
-        }
+        if (Vector3.Distance(transform.position, targetLocation) < maxDistanceFromNextNodeBeforeSwitching)
+            SetTargetToNextWaypointOrStreet();
     }
 
     private void AddMesh()
@@ -265,73 +179,102 @@ public class Car : MonoBehaviour
         cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
         cube.name = "CarCube";
         cube.transform.parent = gameObject.transform;
+                cube.GetComponent<Renderer>().material.color = UnityEngine.Random.ColorHSV();
         boxCollider = this.AddComponent<BoxCollider>();
-        this.AddComponent<Rigidbody>();
-        cube.GetComponent<Renderer>().material.color = UnityEngine.Random.ColorHSV();
+        gameObject.AddComponent<Rigidbody>();
     }
 
-    private Street FindStreetOnCurrentStreet()
+    private void SetTargetToNextWaypointOrStreet()
     {
-        if (forcesStreetID != -1)
+        if (currentWayPointListPosition + 1 < Waypoints.Count)
+        {
+            currentWayPointListPosition++;
+            targetLocation = Waypoints[currentWayPointListPosition];
+        }
+        else
+        {
+            if(FindNextStreet()) targetLocation = Waypoints[0];
+            currentWayPointListPosition = 0;
+        }
+    }
+
+    private bool FindNextStreet()
+    {
+        lastStreet = currentStreet;
+        lastStartNode = currentStartNode;
+        lastEndNode = currentEndNode;
+
+        currentStreet = FindNextConnectedStreet();
+
+        if (currentStreet == lastStreet || currentStreet == null)
+        {
+            DeleteSelf();
+            return false;
+        }
+
+        visitedStreets.Add(currentStreet);
+
+        currentStartNode = currentStreet.StartNode.GetComponent<Node>();
+        currentEndNode = currentStreet.EndNode.GetComponent<Node>();
+
+        Waypoints.Clear();
+        Waypoints.Add(currentStartNode.Position);
+        Waypoints.Add(currentEndNode.Position);
+        return true;
+    }
+
+    private Street FindNextConnectedStreet()
+    {
+        if (forcedStreetID >= 0)
         {
             foreach (Street connectedStreet in currentStreet.EndNode.GetComponent<Node>().ConnectedStreets)
             {
-                if (connectedStreet.StreetID == forcesStreetID)
+                if (connectedStreet.StreetID == forcedStreetID)
                 {
-                    forcesStreetID = -1;
+                    forcedStreetID = -1;
                     return connectedStreet;
                 }
             }
         }
 
-        List<Street> availableStreet = new List<Street>();
+        List<Street> availableStreets = new();
         foreach (Street connectedStreet in currentStreet.EndNode.GetComponent<Node>().ConnectedStreets)
         {
-
-            if (connectedStreet.GetComponent<Street>().StreetID != currentStreet.StreetID)
-            {
-
-                // Suche on Die Jetzige Straße Bereits befahren wurde
-                bool alreadyUsed = false;
-                foreach (Street item in visitedStreets)
-                {
-                    if (item == connectedStreet)
-                    {
-                        alreadyUsed = true;
-                        break;
-                    }
-                }
-
-                if (!alreadyUsed)
-                {
-                    availableStreet.Add(connectedStreet.GetComponent<Street>());
-                }
-            }
+            if (connectedStreet.GetComponent<Street>().StreetID == currentStreet.StreetID) continue;
+            if (!visitedStreets.Contains(connectedStreet)) availableStreets.Add(connectedStreet.GetComponent<Street>());
         }
 
-        if (availableStreet.Count > 0)
-        {
-            Random random = new();
-            int randomIndex = random.Next(0, availableStreet.Count);
-            return availableStreet[randomIndex];
-        }
-        return null;
+        if (availableStreets.Count <= 0) return null;
+
+        // Can later be used, when end points or a goal exist, where a car will be deleted.
+        // If this is the case, then there is no use for destroying the car when it has visited all available streets,
+        // because it should be allowed to backtrack and find something else. This does need work tho, since now it
+        // would just turn around and drive randomly from there, when it in fact should go back to its start,
+        // or the street it visited first. The code also doesn't work, since it currently returns the street it visited
+        // first, when it should return the street it visited first from the connected streets to the car's current node.
+        //
+        //if (availableStreets.Count <= 0)
+        //{
+        //    Street nextStreet = visitedStreets[0];
+        //    visitedStreets.Clear();
+        //    return nextStreet;
+        //}
+
+        Random random = new();
+        int randomIndex = random.Next(0, availableStreets.Count - 1);
+        return availableStreets[randomIndex];
     }
 
-    private void DeleteCar()
+    private void Accelerate()
     {
-        Destroy(this.gameObject);
-        Destroy(cube);
+        if (speed < maxSpeed) speed += acceleration;
+        else speed -= deceleration;
     }
 
-    public void SetMaxSpeed(int newMaxSpeed)
+    private void Decelerate()
     {
-        maxSpeed = newMaxSpeed;
-    }
-
-    public void Stop()
-    {
-        _verhalten = Verhalten.stop;
+        if (speed > 0) speed -= deceleration;
+        if (speed - deceleration < 0) speed = 0;
     }
 
     public void Dijkstra(int nodeID)
@@ -348,7 +291,7 @@ public class Car : MonoBehaviour
         {
             FindNodsFromNode(item.GetComponent<Node>());
         }
-        foreach (var item in listOfPaths)
+        foreach (var item in pathList)
         {
             if (item.PreviousNode != null)
                 Debug.Log("TaretNode: " + item.TargetNode.GetComponent<Node>().NodeID + " with Cost: " + item.Cost + "over Node: " + item.PreviousNode.GetComponent<Node>().NodeID);
@@ -359,21 +302,21 @@ public class Car : MonoBehaviour
         int safty = 7;
         int targetNodeID = nodeID;
         float pathCost = 0;
-        Node currentViewdNode = FindNoteinPathlist(targetNodeID);
-        List<Node> pathRevers = new List<Node>();
+        Node currentlyViewedNode = FindPrevoiusNodeOfPathByTargetNodeID(targetNodeID);
+        List<Node> pathRevers = new();
         
         FindNodsFromNode(currentEndNode.GetComponent<Node>());
 
         do
         {
-            pathCost = pathCost + PathCost(targetNodeID);
+            pathCost += FindPathCostByTargetNodeID(targetNodeID);
             Debug.Log(pathCost);
-            currentViewdNode = FindNoteinPathlist(targetNodeID);
+            currentlyViewedNode = FindPrevoiusNodeOfPathByTargetNodeID(targetNodeID);
 
 
 
             safty--;
-        } while (nodeID != currentViewdNode.GetComponent<Node>().NodeID && safty > 0);
+        } while (nodeID != currentlyViewedNode.GetComponent<Node>().NodeID && safty > 0);
 
 
         //// Finde Die Erste Node die sich angeschaut werden sollte
@@ -408,7 +351,7 @@ public class Car : MonoBehaviour
 
     }
 
-    public void FindNodsFromNode(Node node)
+    private void FindNodsFromNode(Node node)
     {
         // Wenn die Node in der Liste der Liste besuchten Nodes auftaucht
         bool foundInVisited = false;
@@ -426,11 +369,6 @@ public class Car : MonoBehaviour
         // Schaut sich die Angeschlossenen nodes hinzu speichert die niedrigste cost
         float lowestCost = 99999999999999999; // ignore that shit
         Node nodeWithLowestCost = null;
-
-
-
-
-
 
 
         foreach (Street connectedStreet in node.GetComponent<Node>().ConnectedStreets)
@@ -466,39 +404,40 @@ public class Car : MonoBehaviour
 
         if(nodeWithLowestCost != null) 
         { 
-        Pathlist entry = new Pathlist();
+        Path entry = new();
         entry.TargetNode = nodeWithLowestCost.GetComponent<Node>();
         entry.PreviousNode = node.GetComponent<Node>();
         entry.Cost = lowestCost;
-        listOfPaths.Add(entry);
+        pathList.Add(entry);
         }
 
     }
 
-    public Node FindNoteinPathlist(int targetNodeID)
+    private Node FindPrevoiusNodeOfPathByTargetNodeID(int targetNodeID)
     {
-        foreach (Pathlist item in listOfPaths)
+        foreach (Path path in pathList)
         {
-            if (item.TargetNode.GetComponent<Node>().NodeID == targetNodeID)
-            {
-                return item.PreviousNode.GetComponent<Node>();
-            }
-              
+            if (path.TargetNode.GetComponent<Node>().NodeID == targetNodeID)
+                return path.PreviousNode.GetComponent<Node>();
         }
         return null;
     }
 
-    public float PathCost(int targetNodeID)
+    private float FindPathCostByTargetNodeID(int targetNodeID)
     {
-        foreach (var item in listOfPaths)
+        foreach (Path path in pathList)
         {
-            if (item.TargetNode.NodeID == targetNodeID)
+            if (path.TargetNode.NodeID == targetNodeID)
             {
-                return item.Cost;
+                return path.Cost;
             }
-
         }
         return 0f;
     }
 
+    private void DeleteSelf()
+    {
+        Destroy(cube);
+        Destroy(gameObject);
+    }
 }
