@@ -93,7 +93,7 @@ public class TrafficManager : MonoBehaviour
     {
         GameObject trafficSign = Instantiate(trafficSignPrefab, new(position.x,0.4f,position.z), Quaternion.identity);
         trafficSign.transform.rotation = rotation;
-        trafficSign.GetComponent<TrafficSign>().SetData(type, trafficSignValue);
+        trafficSign.GetComponent<TrafficSign>().SetData(this, type, trafficSignValue);
         trafficSignList.Add(trafficSign);
         trafficSign.transform.SetParent(transform.Find("TrafficSigns").transform, true);
     }
@@ -135,6 +135,15 @@ public class TrafficManager : MonoBehaviour
         AddStreet(positionD, intersectionPosition);
     }
 
+    public void DeleteObject(GameObject obj)
+    {
+        Debug.LogWarning("Deleting does not work correctly! Needs fix!");
+        if (obj.GetComponent<Street>() != null) DeleteStreet(obj);
+        if (obj.GetComponent<Node>() != null) DeleteNode(obj);
+        if (obj.GetComponent<CarSpawner>() != null) DeleteCarSpawner(obj);
+        if (obj.GetComponent<Car>() != null) DeleteCar(obj);
+    }
+
     public void DeleteStreet(GameObject street)
     {
         street.GetComponent<Street>().DeleteStreetContents();
@@ -145,13 +154,20 @@ public class TrafficManager : MonoBehaviour
     public void DeleteNode(GameObject node)
     {
         node.GetComponent<Node>().DeleteSphere();
+        foreach (Street street in node.GetComponent<Node>().ConnectedStreets) DeleteStreet(street.gameObject);
         nodeList.Remove(node);
         Destroy(node);
     }
 
     public void DeleteCarSpawner(GameObject carSpawner)
     {
+        CarSpawnerList.Remove(carSpawner);
         Destroy(carSpawner);
+    }
+
+    public void DeleteCar(GameObject car)
+    {
+        Destroy(car);
     }
 
     public GameObject FindNodeWithPosition(Vector3 position)

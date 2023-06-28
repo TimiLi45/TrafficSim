@@ -152,7 +152,7 @@ BoxCollider:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 4
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -175,6 +175,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6bdfeb514cfff554ab247a85ba980214, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  trafficManager: {fileID: 0}
+  value: 0
+  selectedType: 0
 --- !u!1 &6020198471957144790
 GameObject:
   m_ObjectHideFlags: 0

@@ -14,17 +14,19 @@ public enum TrafficSignTypes
 public class TrafficSign : MonoBehaviour
 {
     [SerializeField, HideInInspector]
+    TrafficManager trafficManager;
+
+    [SerializeField, HideInInspector]
     int value = 0;
     
     [SerializeField, HideInInspector]
     TrafficSignTypes selectedType = TrafficSignTypes.maxSpeed;
 
-    public void SetData(TrafficSignTypes type, int value)
+    public void SetData(TrafficManager trafficManager, TrafficSignTypes type, int value)
     {
+        this.trafficManager = trafficManager;
         selectedType = type;
         this.value = value;
-        gameObject.GetComponentInChildren<CapsuleCollider>().enabled = false;
-        gameObject.GetComponentInChildren<BoxCollider>().enabled = false;
         GenerateRayCastHitCylinder();
     }
 
@@ -32,8 +34,8 @@ public class TrafficSign : MonoBehaviour
     {
         gameObject.AddComponent<CapsuleCollider>();
         gameObject.GetComponent<CapsuleCollider>().isTrigger = true;
-        gameObject.GetComponent<CapsuleCollider>().radius = 1.5f;
-        gameObject.GetComponent<CapsuleCollider>().height = 4.5f;
+        gameObject.GetComponent<CapsuleCollider>().radius = 1;
+        gameObject.GetComponent<CapsuleCollider>().height = 4f;
     }
 
     private void OnTriggerEnter(Collider collider)

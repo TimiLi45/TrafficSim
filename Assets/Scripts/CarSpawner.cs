@@ -22,8 +22,9 @@ public class CarSpawner  : MonoBehaviour
     public void SetData(GameObject trafficManager, Vector3 position)
     {
         this.trafficManager = trafficManager;
-        this.position = position;
         connectedNode = trafficManager.GetComponent<TrafficManager>().FindNodeWithPosition(position).GetComponent<Node>();
+        this.position = connectedNode.Position;
+        gameObject.transform.position = connectedNode.Position;
         GenerateRayCastHitCylinder();
         // debug model, may be replaced later, or removed
         GameObject cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);

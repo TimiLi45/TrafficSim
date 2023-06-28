@@ -59,7 +59,8 @@ public class Node : MonoBehaviour
     {
         gameObject.AddComponent<SphereCollider>();
         gameObject.GetComponent<SphereCollider>().isTrigger = true;
-        gameObject.GetComponent<SphereCollider>().radius = (float)(trafficManager.NodeSphereSize + 0.01 * (trafficManager.NodeSphereSize));
+        gameObject.GetComponent<SphereCollider>().radius = (float)(trafficManager.NodeSphereSize - 0.1 * (trafficManager.NodeSphereSize));
+        gameObject.GetComponent<SphereCollider>().center = new Vector3(0f,.5f,0f);
     }
 
     public void AddConnectedStreet(Street connectedStreet)
