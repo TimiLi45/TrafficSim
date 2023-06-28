@@ -1,10 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Runtime.CompilerServices;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class TrafficManager : MonoBehaviour
@@ -15,8 +11,11 @@ public class TrafficManager : MonoBehaviour
     float nodeMergeDistance = 2.0f;
     [SerializeField]
     float wayPointSpacing = .3f;
+
     [SerializeField]
     float wayPointSphereSize = .2f;
+    [SerializeField]
+    float nodeSphereSize = 1f;
 
     [SerializeField, HideInInspector]
     List<GameObject> streetList = new();
@@ -38,6 +37,10 @@ public class TrafficManager : MonoBehaviour
     public float WayPointSphereSize
     {
         get { return wayPointSphereSize; }
+    }
+    public float NodeSphereSize
+    {
+        get { return nodeSphereSize; }
     }
     public List<GameObject> StreetList
     {

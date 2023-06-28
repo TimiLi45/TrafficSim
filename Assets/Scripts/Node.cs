@@ -1,10 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Experimental.GraphView;
-using UnityEditor.MemoryProfiler;
 using UnityEngine;
-using UnityEngine.InputSystem.HID;
 
 public class Node : MonoBehaviour
 {
@@ -47,13 +44,22 @@ public class Node : MonoBehaviour
         nodeID = currentNodeID++;
         this.position = position;
         trafficManager.NodeList.Add(gameObject);
+        GenerateRayCastHitSphere();
         // The sphere for rendering Nodes is generated here for now, since later it won't be done in this class at all, but in the InteractionManager as a Debug Render.
         sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         sphere.transform.position = position;
+        sphere.transform.localScale = new Vector3(trafficManager.NodeSphereSize, trafficManager.NodeSphereSize, trafficManager.NodeSphereSize);
         sphere.layer = LayerMask.NameToLayer("Ignore Raycast");
         sphere.name = "NodeSphere";
         sphere.transform.parent = gameObject.transform;
         sphere.GetComponent<SphereCollider>().enabled = false;
+    }
+
+    private void GenerateRayCastHitSphere()
+    {
+        gameObject.AddComponent<SphereCollider>();
+        gameObject.GetComponent<SphereCollider>().isTrigger = true;
+        gameObject.GetComponent<SphereCollider>().radius = (float)(trafficManager.NodeSphereSize + 0.01 * (trafficManager.NodeSphereSize));
     }
 
     public void AddConnectedStreet(Street connectedStreet)

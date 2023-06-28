@@ -23,6 +23,17 @@ public class TrafficSign : MonoBehaviour
     {
         selectedType = type;
         this.value = value;
+        gameObject.GetComponentInChildren<CapsuleCollider>().enabled = false;
+        gameObject.GetComponentInChildren<BoxCollider>().enabled = false;
+        GenerateRayCastHitCylinder();
+    }
+
+    private void GenerateRayCastHitCylinder()
+    {
+        gameObject.AddComponent<CapsuleCollider>();
+        gameObject.GetComponent<CapsuleCollider>().isTrigger = true;
+        gameObject.GetComponent<CapsuleCollider>().radius = 1.5f;
+        gameObject.GetComponent<CapsuleCollider>().height = 4.5f;
     }
 
     private void OnTriggerEnter(Collider collider)
