@@ -56,6 +56,7 @@ public class PartBuilder : MonoBehaviour
     [SerializeField, HideInInspector]
     Vector3 endDrag;
 
+    [SerializeField, HideInInspector]
     Plane plane = new Plane(Vector3.up, 0);
 
     public BuildableTypes CurrentlySelectedType
@@ -122,8 +123,7 @@ public class PartBuilder : MonoBehaviour
 
     void Update()
     {
-        //if(currentlySelectedType == BuildableTypes.GrabObject)
-        //change cursor here
+        ChangeVariables();
         BuildPart();
         if (isDragging)
             DragPlaceStreet();
@@ -152,7 +152,6 @@ public class PartBuilder : MonoBehaviour
         switch (currentlySelectedType)
         {
             case BuildableTypes.GrabObject:
-                GrabObject();
                 break;
             case BuildableTypes.Straight:
                 GetMousePosition();
@@ -185,9 +184,10 @@ public class PartBuilder : MonoBehaviour
         return mousePositionInGame;
     }
 
-    private void GrabObject()
+    private void ChangeVariables()
     {
-
+        if (currentlySelectedType == BuildableTypes.GrabObject) gameObject.GetComponent<Selection>().DoSelection = true;
+        else gameObject.GetComponent<Selection>().DoSelection = false;
     }
 
     private void PlaceCarSpawner()
@@ -200,9 +200,9 @@ public class PartBuilder : MonoBehaviour
     {
         Vector3 placePosition = GetMousePosition();
         Quaternion rotation;
-        if(trafficManager.FindStreetInRange(placePosition, trafficSignStreetDetectionDistance) != null)
+        if(trafficManager.FindClosestStreetInRange(placePosition, trafficSignStreetDetectionDistance) != null)
         {
-            GameObject streetInRange = trafficManager.FindStreetInRange(placePosition, trafficSignStreetDetectionDistance);
+            GameObject streetInRange = trafficManager.FindClosestStreetInRange(placePosition, trafficSignStreetDetectionDistance);
             rotation = Quaternion.LookRotation((streetInRange.GetComponent<Street>().StartPoint - streetInRange.GetComponent<Street>().EndPoint).normalized);
         }
         else

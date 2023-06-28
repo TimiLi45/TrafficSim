@@ -151,39 +151,66 @@ public class TrafficManager : MonoBehaviour
         Destroy(carSpawner);
     }
 
-    public GameObject FindNodeWithPosition(Vector3 Position)
+    public GameObject FindNodeWithPosition(Vector3 position)
     {
         foreach (GameObject street in streetList)
         {
-            if (IsInDistance(street.GetComponent<Street>().StartNode.GetComponent<Node>().Position, Position, nodeMergeDistance))
+            if (IsInDistance(street.GetComponent<Street>().StartNode.GetComponent<Node>().Position, position, nodeMergeDistance))
                 return street.GetComponent<Street>().StartNode;
-            if (IsInDistance(street.GetComponent<Street>().EndNode.GetComponent<Node>().Position, Position, nodeMergeDistance))
+            if (IsInDistance(street.GetComponent<Street>().EndNode.GetComponent<Node>().Position, position, nodeMergeDistance))
                 return street.GetComponent<Street>().EndNode;
         }
         return null;
     }
 
-    public GameObject FindCarSpawnerInRange(Vector3 Position, float range)
+    public GameObject FindCarSpawnerInRange(Vector3 position, float range)
     {
         foreach (GameObject carSpawner in carSpawnerList)
         {
-            if (IsInDistance(carSpawner.GetComponent<CarSpawner>().Position,Position,range)) return carSpawner;
+            if (IsInDistance(carSpawner.GetComponent<CarSpawner>().Position,position,range)) return carSpawner;
         }
         return null;
     }
 
-    public GameObject FindStreetInRange(Vector3 Position, float range)
+    public GameObject FindStreetInRange(Vector3 position, float range)
     {
         foreach(GameObject street in streetList)
         {
             foreach(Vector3 wayPoint in street.GetComponent<Street>().WayPoints)
             {
-                if(IsInDistance(wayPoint, Position, range)) return street;
+                if(IsInDistance(wayPoint, position, range)) return street;
             }
         }
         return null;
     }
 
+    public GameObject FindClosestStreetInRange(Vector3 position, float range)
+    {
+        List<Tuple<GameObject, Vector3>> foundStreets = new();
+        foreach (GameObject street in streetList) 
+            if(FindClosestWayPointOfStreetInRange(position, range, street) != null) 
+                foundStreets.Add(FindClosestWayPointOfStreetInRange(position, range, street));
+
+        if(foundStreets.Count <= 0) return null;
+
+        Tuple<GameObject, Vector3> closestStreet = foundStreets[0];
+        foreach (Tuple<GameObject, Vector3> street in foundStreets)
+            if(Vector3.Distance(street.Item2, position) < Vector3.Distance(closestStreet.Item2, position))
+                closestStreet = street;
+
+        return closestStreet.Item1;
+    }
+
+    private Tuple<GameObject, Vector3> FindClosestWayPointOfStreetInRange(Vector3 position, float range, GameObject street)
+    {
+        Vector3 closestPoint = Vector3.zero;
+        foreach (Vector3 wayPoint in street.GetComponent<Street>().WayPoints)
+            if (IsInDistance(wayPoint, position, range) && Vector3.Distance(wayPoint, position) < Vector3.Distance(closestPoint, wayPoint))
+                closestPoint = wayPoint;
+
+        if(closestPoint == Vector3.zero) return null;
+        return Tuple.Create(street, closestPoint);
+    }
 
     public bool IsInDistance(Vector3 a, Vector3 b, float distance)
     {
