@@ -53,21 +53,27 @@ public class Selection : MonoBehaviour
     void Update()
     {
         if (!doSelection || EventSystem.current.IsPointerOverGameObject()) return;
+        RemoveOutlineOnNotHoveredObjects();
         GenerateOutlineOnMouseOver();
         SelectObject();
+
         if (selectedObject != null) editCanvas.GetComponent<Canvas>().enabled = true;
         else editCanvas.GetComponent<Canvas>().enabled = false;
     }
 
-    private void GenerateOutlineOnMouseOver()
+    private void RemoveOutlineOnNotHoveredObjects()
     {
         hoveredObject = GetHoveredObject();
-
         outlinedGameObjects.RemoveAll(gameObject => gameObject.Item1 == null);
         foreach (Tuple<Renderer, Shader> rendererAndShader in outlinedGameObjects)
             if (rendererAndShader.Item1.gameObject != hoveredObject)
                 rendererAndShader.Item1.material.shader = rendererAndShader.Item2;
         outlinedGameObjects.RemoveAll(rendererAndShader => rendererAndShader.Item1.material.shader == rendererAndShader.Item2);
+    }
+
+    private void GenerateOutlineOnMouseOver()
+    {
+        hoveredObject = GetHoveredObject();
         if (hoveredObject == null) return;
 
         Renderer[] hoveredObjectRenderers = hoveredObject.GetComponentsInChildren<Renderer>();
@@ -116,7 +122,10 @@ public class Selection : MonoBehaviour
 
     public void DeleteSelectedObject()
     {
-        trafficManager.DeleteObject(selectedObject);
+        outlinedGameObjects.Clear();
+        selectedObjectPreviousShaders.Clear();
+        TrafficGameObjectTypes selectedType = trafficManager.GetGameObjectType(selectedObject);
+        trafficManager.DeleteGameObjectByType(selectedObject, selectedType);
     }
 
     public void MoveSelectedObject()

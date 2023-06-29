@@ -95,6 +95,18 @@ public class Street : MonoBehaviour
         GenerateModel();
     }
 
+    //private void Update()
+    //{
+    //    Debug.Log(
+    //        streetID + ": \n" +
+    //        "current Street ID: " + currentStreetID + "\n" +
+    //        "Start Point: " + startPoint + "\n" +
+    //        "End Point: " + endPoint + "\n" +
+    //        "Start Node: " + startNode.GetComponent<Node>().NodeID + "\n" +
+    //        "End Node: " + endNode.GetComponent<Node>().NodeID
+    //        );
+    //}
+
     private void GenerateNodes(ref bool generateStartWayPoint, ref bool generateEndWayPoint)
     {
         if (trafficManager.FindNodeWithPosition(startPoint) == null)
