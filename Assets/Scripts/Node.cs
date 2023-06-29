@@ -15,7 +15,7 @@ public class Node : MonoBehaviour
     int nodeID;
 
     [SerializeField, HideInInspector]
-    List<Street> connectedStreets;
+    List<GameObject> connectedStreets;
 
     [SerializeField, HideInInspector]
     Vector3 position;
@@ -27,7 +27,7 @@ public class Node : MonoBehaviour
     {
         get { return nodeID; }
     }
-    public List<Street> ConnectedStreets
+    public List<GameObject> ConnectedStreets
     {
         get { return connectedStreets; }
 
@@ -39,7 +39,7 @@ public class Node : MonoBehaviour
     
     public void SetData(TrafficManager trafficManager ,Vector3 position)
     {
-        connectedStreets = new List<Street>();
+        connectedStreets = new List<GameObject>();
         this.trafficManager = trafficManager;
         nodeID = currentNodeID++;
         this.position = position;
@@ -63,7 +63,7 @@ public class Node : MonoBehaviour
         gameObject.GetComponent<SphereCollider>().center = new Vector3(0f,.5f,0f);
     }
 
-    public void AddConnectedStreet(Street connectedStreet)
+    public void AddConnectedStreet(GameObject connectedStreet)
     {
         connectedStreets.Add(connectedStreet);
     }
@@ -73,7 +73,7 @@ public class Node : MonoBehaviour
         Destroy(sphere);
     }
 
-    public void RemoveConnectedStreet(Street connectedStreet)
+    public void RemoveConnectedStreet(GameObject connectedStreet)
     {
         connectedStreets.Remove(connectedStreet);
     }
