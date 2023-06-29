@@ -8,7 +8,7 @@ using UnityEngine.InputSystem;
 using Debug = UnityEngine.Debug;
 using Random = System.Random;
 
-public struct Path
+public struct Path // this struct is very funny
 {
     private GameObject targetNode;
     private float cost;
@@ -73,7 +73,7 @@ public class Car : MonoBehaviour
     [SerializeField, HideInInspector]
     int forcedStreetID;
     [SerializeField, HideInInspector]
-    int pathListPalce = 0; // Bitte Ignorieren
+    int pathListPalce = 0; // Please Ignore
     [SerializeField, HideInInspector]
     Vector3 targetLocation;
     [SerializeField, HideInInspector]
@@ -93,8 +93,8 @@ public class Car : MonoBehaviour
     [SerializeField, HideInInspector]
     Node lastEndNode;
     [SerializeField, HideInInspector]
-    Path[] pathList = new Path[100];
-
+    Path[] pathList = new Path[500];
+    
     [SerializeField, HideInInspector]
     float pathCost = 0;
     [SerializeField, HideInInspector]
@@ -243,6 +243,7 @@ public class Car : MonoBehaviour
         }
     }
 
+
     private bool FindNextStreet()
     {
         if (dijkstraMode) { DeleteSelf(); }
@@ -312,6 +313,7 @@ public class Car : MonoBehaviour
         int randomIndex = random.Next(0, availableStreets.Count - 1);
         return availableStreets[randomIndex];    }
 
+    // for the fast boys
     private void Accelerate()
     {
         if (speed < maxSpeed) speed += acceleration;
@@ -330,7 +332,7 @@ public class Car : MonoBehaviour
         targetNodeID = nodeID;
         int safty = 100;
         int startNode = currentStreet.GetComponent<Street>().EndNode.GetComponent<Node>().NodeID;
-        // Die Straße die sich gerade Angeschaut wird
+        // the current sStreet
         GameObject currentViewdStreet = currentStreet;
         // Create Start Index
         Path startEntry = new Path();
@@ -351,6 +353,7 @@ public class Car : MonoBehaviour
         if (safty == 0)
         {
             Debug.Log("Error No Path found");
+            dijkstraMode = false;
         }
         else
         {
@@ -360,7 +363,6 @@ public class Car : MonoBehaviour
 
     private void FindPath(int targetNode,int startNode)
     {
-
         //for(int i = 0; i < pathList.Length; i++)
         //{
         //    Waypoints.Clear();
@@ -368,12 +370,9 @@ public class Car : MonoBehaviour
         //    {
         //        //Debug.Log( "TargetNode: "+pathList[i].TargetNode.GetComponent<Node>().NodeID + " Cost: " + pathList[i].Cost + "StartNode: " +pathList[i].PreviousNode.GetComponent<Node>().NodeID);
         //        Waypoints.Add(pathList[i].TargetNode.GetComponent<Node>().Position);
-
         //    }
         //}
-
-
-
+        // ################### This Code is the finest Cope
         Waypoints.Clear();
         currentWayPointListPosition = -1;
         int currentTarget = targetNode;
@@ -382,23 +381,23 @@ public class Car : MonoBehaviour
         {
             for (int i = 0; i < pathList.Length; i++)
             {
-                if(pathList[i].TargetNode == null) {
+                // WHYYY????
+                if (pathList[i].TargetNode == null) 
+                {
                     errorNull = true;
                     break; 
                 }
-                
-                if (pathList[i].TargetNode.GetComponent<Node>().NodeID == currentTarget)
+                // Ah thats why!
+                if (pathList[i].TargetNode.GetComponent<Node>().NodeID == currentTarget) 
                 {
                     currentTarget = pathList[i].PreviousNode.GetComponent<Node>().NodeID;
                     Waypoints.Add(pathList[i].TargetNode.GetComponent<Node>().Position);
-                    Debug.Log(pathList[i].TargetNode.GetComponent<Node>().Position);
                     break;
                 }
 
             }
         } while (currentTarget != startNode && !errorNull);
 
-        Debug.Log("Waypoints:"+ Waypoints.Count);
         Waypoints.Reverse();
 
     }
@@ -484,7 +483,6 @@ public class Car : MonoBehaviour
         FindPathsOnNode(currentNode);
         //Add to Visited Nodes
         vistetPaths.Add(currentStreet);
-
     }
 
     private GameObject FindNewStreet()
