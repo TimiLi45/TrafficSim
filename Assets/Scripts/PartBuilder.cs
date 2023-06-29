@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System;
 using UnityEngine.EventSystems;
+using UnityEngine.UIElements;
 
 public enum BuildableTypes
 {
@@ -51,9 +52,6 @@ public class PartBuilder : MonoBehaviour
     Vector3 startDrag;
     [SerializeField, HideInInspector]
     Vector3 endDrag;
-
-    [SerializeField, HideInInspector]
-    Plane plane = new Plane(Vector3.up, 0);
 
     public BuildableTypes CurrentlySelectedType
     {
@@ -168,16 +166,10 @@ public class PartBuilder : MonoBehaviour
 
     private Vector3 GetMousePosition()
     {
-        Vector3 worldposition;
-        float distance;
-        Ray Mouseray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-        if (plane.Raycast(Mouseray, out distance))
-            worldposition = Mouseray.GetPoint(distance);
-        else
-            worldposition = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+        if (Mouse.current.position == null) return Vector3.zero;
+        ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
 
-        ray = new Ray(worldposition, mainCamera.transform.forward);
-
+        Physics.Raycast(ray, out hit, 1000f);
         Physics.Raycast(ray, out hit, 1000f);
         mousePositionInGame = hit.point;
         return mousePositionInGame;
@@ -192,7 +184,16 @@ public class PartBuilder : MonoBehaviour
     private void PlaceCarSpawner()
     {
         Vector3 placePosition = GetMousePosition();
-        trafficManager.AddCarSpawner(placePosition);
+        if (trafficManager.FindCarSpawnerInRange(placePosition, trafficManager.NodeMergeDistance) != null) return;
+        foreach (GameObject street in trafficManager.StreetList)
+        {
+            if (trafficManager.IsInDistance(placePosition, street.GetComponent<Street>().StartNode.GetComponent<Node>().Position, trafficManager.NodeMergeDistance))
+            {
+                trafficManager.AddCarSpawner(placePosition);
+                return;
+            }
+        }
+        Debug.Log("No Location Found for Car Spawner");
     }
 
     private void PlaceTrafficSign()

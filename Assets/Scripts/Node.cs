@@ -55,6 +55,17 @@ public class Node : MonoBehaviour
         sphere.GetComponent<SphereCollider>().enabled = false;
     }
 
+    private void Update()
+    {
+        //Debug.Log(
+        //    NodeID + ": \n" +
+        //    "Current Node ID: "+currentNodeID+"\n"+
+        //    "Connected Streets: "+connectedStreets.Count+"\n"+
+        //    "Position: "+position
+        //    );
+        //foreach (GameObject go in connectedStreets) { Debug.Log(NodeID+": "+go.GetComponent<Street>().StreetID); }
+    }
+
     private void GenerateRayCastHitSphere()
     {
         gameObject.AddComponent<SphereCollider>();

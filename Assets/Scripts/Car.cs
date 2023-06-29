@@ -60,6 +60,14 @@ public class Car : MonoBehaviour
     float maxSpeed = 10f;
     [SerializeField, HideInInspector]
     float maxDistanceFromNextNodeBeforeSwitching = 1f;
+
+    [SerializeField, HideInInspector]
+    float maxRangeOfSight = 10f;
+    [SerializeField, HideInInspector]
+    float reactionTime = 2f;
+    [SerializeField, HideInInspector]
+    float distanceFromNextCar = 2f;
+
     [SerializeField, HideInInspector]
     int currentWayPointListPosition;
     [SerializeField, HideInInspector]
@@ -112,6 +120,7 @@ public class Car : MonoBehaviour
     {
         if (startNode == null) DeleteSelf();
         this.trafficManager = trafficManager;
+        forcedStreetID = -1;
 
         foreach (GameObject connectedStreet in startNode.GetComponent<Node>().ConnectedStreets)
         {
@@ -240,7 +249,7 @@ public class Car : MonoBehaviour
             if (connectedStreet.GetComponent<Street>().StreetID == currentStreet.GetComponent<Street>().StreetID) continue;
             if (!visitedStreets.Contains(connectedStreet)) availableStreets.Add(connectedStreet);
         }
-
+        
         if (availableStreets.Count <= 0) return null;
 
         // Can later be used, when end points or a goal exist, where a car will be deleted.
@@ -259,8 +268,7 @@ public class Car : MonoBehaviour
 
         Random random = new();
         int randomIndex = random.Next(0, availableStreets.Count - 1);
-        return availableStreets[randomIndex];
-    }
+        return availableStreets[randomIndex];    }
 
     // for the fast boys
     private void Accelerate()

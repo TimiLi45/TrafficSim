@@ -12,8 +12,6 @@ public class InteractionManager : MonoBehaviour
     Camera mainCamera;
 
     [SerializeField, HideInInspector]
-    bool renderingWayPoints = false;
-    [SerializeField, HideInInspector]
     bool renderingStreetIDs = false;
     [SerializeField, HideInInspector]
     bool renderingNodeIDsAndPositions = false;
@@ -41,12 +39,9 @@ public class InteractionManager : MonoBehaviour
             foreach (GameObject street in trafficManager.StreetList)
                 foreach (GameObject wayPointSphere in street.GetComponent<Street>().WayPointSpheres)
                     wayPointSphere.SetActive(false);
-            renderingWayPoints = false;
             return;
         }
 
-        if(renderingWayPoints) return;
-        renderingWayPoints = true;
         foreach (GameObject street in trafficManager.StreetList)
             foreach (GameObject wayPointSphere in street.GetComponent<Street>().WayPointSpheres)
                 wayPointSphere.SetActive(true);

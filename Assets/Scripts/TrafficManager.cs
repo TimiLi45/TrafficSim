@@ -3,6 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum TrafficGameObjectTypes
+{
+    None,
+    Street,
+    Node,
+    CarSpawner,
+    Car,
+    TrafficSign
+}
+
 public class TrafficManager : MonoBehaviour
 {
     public GameObject trafficSignPrefab;
@@ -29,6 +39,10 @@ public class TrafficManager : MonoBehaviour
     public List<GameObject> NodeList
     {
         get { return nodeList; }
+    }
+    public float NodeMergeDistance
+    {
+        get { return nodeMergeDistance; }
     }
     public float WayPointDistance
     {
@@ -67,26 +81,11 @@ public class TrafficManager : MonoBehaviour
 
     public void AddCarSpawner(Vector3 position)
     {
-        if (FindCarSpawnerInRange(position, nodeMergeDistance) != null) return;
-        bool found = false;
-        foreach (GameObject street in StreetList)
-        {
-            if (IsInDistance(position, street.GetComponent<Street>().StartNode.GetComponent<Node>().Position, nodeMergeDistance))
-            {
-                GameObject carSpawner = new();
-                carSpawner.transform.position = position;
-                carSpawner.AddComponent<CarSpawner>().SetData(gameObject, position);
-                carSpawner.name = "CarSpawner";
-                carSpawner.transform.SetParent(transform.Find("CarSpawner").transform, true);
-                carSpawnerList.Add(carSpawner);
-                found = true;
-                return;
-            }
-        }
-        if (!found)
-        {
-            Debug.Log("No Location Found for Car Spawner");
-        }
+        GameObject carSpawner = new("CarSpawner");
+        carSpawner.transform.position = position;
+        carSpawner.AddComponent<CarSpawner>().SetData(gameObject, position);
+        carSpawner.transform.SetParent(transform.Find("CarSpawner").transform, true);
+        carSpawnerList.Add(carSpawner);
     }
 
     public void AddTrafficSign(Vector3 position, TrafficSignTypes type, int trafficSignValue, Quaternion rotation)
@@ -135,13 +134,28 @@ public class TrafficManager : MonoBehaviour
         AddStreet(positionD, intersectionPosition);
     }
 
-    public void DeleteObject(GameObject obj)
+    public void DeleteGameObjectByType(GameObject gameObject, TrafficGameObjectTypes type)
     {
-        Debug.LogWarning("Deleting does not work correctly! Needs fix!");
-        if (obj.GetComponent<Street>() != null) DeleteStreet(obj);
-        if (obj.GetComponent<Node>() != null) DeleteNode(obj);
-        if (obj.GetComponent<CarSpawner>() != null) DeleteCarSpawner(obj);
-        if (obj.GetComponent<Car>() != null) DeleteCar(obj);
+        switch(type)
+        {
+            case TrafficGameObjectTypes.None:
+                break;
+            case TrafficGameObjectTypes.Street:
+                DeleteStreet(gameObject);
+                break;
+            case TrafficGameObjectTypes.Node:
+                DeleteNode(gameObject);
+                break;
+            case TrafficGameObjectTypes.CarSpawner:
+                DeleteCarSpawner(gameObject);
+                break;
+            case TrafficGameObjectTypes.Car:
+                DeleteCar(gameObject);
+                break;
+            case TrafficGameObjectTypes.TrafficSign:
+                DeleteTrafficSign(gameObject);
+                break;
+        }
     }
 
     public void DeleteStreet(GameObject street)
@@ -154,7 +168,11 @@ public class TrafficManager : MonoBehaviour
     public void DeleteNode(GameObject node)
     {
         node.GetComponent<Node>().DeleteSphere();
-        foreach (GameObject street in node.GetComponent<Node>().ConnectedStreets) DeleteStreet(street.gameObject);
+        for (int i = 0; i < node.GetComponent<Node>().ConnectedStreets.Count; i++)
+        {
+            DeleteStreet(node.GetComponent<Node>().ConnectedStreets[i].gameObject);
+            i--;
+        }
         nodeList.Remove(node);
         Destroy(node);
     }
@@ -168,6 +186,11 @@ public class TrafficManager : MonoBehaviour
     public void DeleteCar(GameObject car)
     {
         Destroy(car);
+    }
+
+    public void DeleteTrafficSign(GameObject trafficSign)
+    {
+        Destroy(trafficSign);
     }
 
     public GameObject FindNodeWithPosition(Vector3 position)
@@ -218,6 +241,16 @@ public class TrafficManager : MonoBehaviour
                 closestStreet = street;
 
         return closestStreet.Item1;
+    }
+
+    public TrafficGameObjectTypes GetGameObjectType(GameObject gameObject)
+    {
+        if (gameObject.GetComponent<Street>() != null) return TrafficGameObjectTypes.Street;
+        if (gameObject.GetComponent<Node>() != null) return TrafficGameObjectTypes.Node;
+        if (gameObject.GetComponent<CarSpawner>() != null) return TrafficGameObjectTypes.CarSpawner;
+        if (gameObject.GetComponent<Car>() != null) return TrafficGameObjectTypes.Car;
+        if (gameObject.GetComponent<TrafficSign>() != null) return TrafficGameObjectTypes.TrafficSign;
+        return TrafficGameObjectTypes.Node;
     }
 
     private Tuple<GameObject, Vector3> FindClosestWayPointOfStreetInRange(Vector3 position, float range, GameObject street)
