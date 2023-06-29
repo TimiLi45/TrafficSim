@@ -122,6 +122,8 @@ public class Selection : MonoBehaviour
 
     public void DeleteSelectedObject()
     {
+        foreach(Tuple<Renderer, Shader> rendererAndShader in outlinedGameObjects)
+            rendererAndShader.Item1.material.shader = rendererAndShader.Item2;
         outlinedGameObjects.Clear();
         selectedObjectPreviousShaders.Clear();
         TrafficGameObjectTypes selectedType = trafficManager.GetGameObjectType(selectedObject);
