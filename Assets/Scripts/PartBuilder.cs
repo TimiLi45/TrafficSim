@@ -95,6 +95,9 @@ public class PartBuilder : MonoBehaviour
             case 2:
                 currentlySelectedTrafficSignType = TrafficSignTypes.STOP;
                 break;
+            case 3:
+                currentlySelectedTrafficSignType = TrafficSignTypes.Dijkstra;
+                break;
         }
     }
 
