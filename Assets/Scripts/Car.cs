@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using Unity.VisualScripting.Antlr3.Runtime;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Random = System.Random;
@@ -43,15 +45,12 @@ public class Car : MonoBehaviour
 {
     [SerializeField, HideInInspector]
     GameObject trafficManager;
-
     [SerializeField, HideInInspector]
     CarBehaviour currentBehaviour = CarBehaviour.none;
-
     [SerializeField, HideInInspector]
     GameObject cube;
     [SerializeField, HideInInspector]
     BoxCollider boxCollider;
-
     [SerializeField, HideInInspector]
     float stopTimeLeft = 1f;
     [SerializeField, HideInInspector]
@@ -76,21 +75,17 @@ public class Car : MonoBehaviour
     int currentWayPointListPosition;
     [SerializeField, HideInInspector]
     int forcedStreetID;
-
-
+    int pathListPalce = 0; // Bitte Ignorieren
     [SerializeField, HideInInspector]
     Vector3 targetLocation;
     [SerializeField, HideInInspector]
     List<Vector3> Waypoints = new();
-
-
     [SerializeField, HideInInspector]
-   GameObject lastStreet;
+    GameObject lastStreet;
     [SerializeField, HideInInspector]
     GameObject currentStreet;
     [SerializeField, HideInInspector]
     List<GameObject> visitedStreets = new();
-
     [SerializeField, HideInInspector]
     Node currentStartNode;
     [SerializeField, HideInInspector]
@@ -99,22 +94,14 @@ public class Car : MonoBehaviour
     Node currentEndNode;
     [SerializeField, HideInInspector]
     Node lastEndNode;
-
-
-    //[SerializeField, HideInInspector]
-    //List<Node> notVisitedNodes = new();
-    //[SerializeField, HideInInspector]
-    //List<Node> visitedNodes = new();
-
     [SerializeField, HideInInspector]
     Path[] pathList = new Path[100];
 
     float pathCost = 0;
+    bool dijkstraMode = false;
 
     List<GameObject> pathsToVisit = new();
     List<GameObject> vistetPaths = new();
-    //List<int> vistetNodes = new();
-    ////List<int> toVistNodes = new();
 
     public int ForcedStreetID
     {
@@ -208,20 +195,25 @@ public class Car : MonoBehaviour
         {
             currentWayPointListPosition++;
             targetLocation = Waypoints[currentWayPointListPosition];
+            
         }
         else
         {
+
             if (FindNextStreet()) targetLocation = Waypoints[0];
-            currentWayPointListPosition = 0;
+            {
+                
+                currentWayPointListPosition = 0;
+            }
         }
     }
 
     private bool FindNextStreet()
     {
+        if (dijkstraMode) { DeleteSelf(); }
         lastStreet = currentStreet;
         lastStartNode = currentStartNode;
         lastEndNode = currentEndNode;
-
         currentStreet = FindNextConnectedStreet();
 
         if (currentStreet == lastStreet || currentStreet == null)
@@ -296,174 +288,95 @@ public class Car : MonoBehaviour
 
     public void Dijkstra(int nodeID)
     {
-        //Debug.Log(trafficManager.GetComponent<TrafficManager>().NodeList.Count);
-        //Pathlist startEntry = new Pathlist();
-        //startEntry.TargetNode = currentEndNode.GetComponent<Node>();
-        //startEntry.PreviousNode = null;
-        //startEntry.Cost = 0;
-        //listOfPaths.Add(startEntry);
-        //// erstelle eine Liste mit den jeweils kürzersten routen zwischen 2 Punkten
-        //foreach (GameObject item in trafficManager.GetComponent<TrafficManager>().NodeList)
-        //{
-        //    FindNodsFromNode(item.GetComponent<Node>());
-        //}
-        //foreach (var item in pathList)
-        //{
-        //    if (item.PreviousNode != null)
-        //        Debug.Log("TaretNode: " + item.TargetNode.GetComponent<Node>().NodeID + " with Cost: " + item.Cost + "over Node: " + item.PreviousNode.GetComponent<Node>().NodeID);
-        //}
-
-
-        // Fügt die jetzige Node den untersuchten hinzu u
-        //int safty = 100;
-        //FindNodsFromNode(currentEndNode.GetComponent<Node>());
-        //do
-        //{
-        //    pathCost += FindPathCostByTargetNodeID(targetNodeID);
-        //    Debug.Log(pathCost);
-        //    currentlyViewedNode = FindPrevoiusNodeOfPathByTargetNodeID(targetNodeID);
-        //    safty--;
-        //} while (nodeID != currentlyViewedNode.GetComponent<Node>().NodeID && safty > 0);
-
-
+        dijkstraMode = true;
         int safty = 100;
-        List<GameObject> pathList = new();
-
-
-
-
+        int startNode = currentStreet.GetComponent<Street>().EndNode.GetComponent<Node>().NodeID;
         // Die Straße die sich gerade Angeschaut wird
         GameObject currentViewdStreet = currentStreet;
         // Create Start Index
-
         Path startEntry = new Path();
         startEntry.TargetNode = currentStreet.GetComponent<Street>().EndNode;
         startEntry.PreviousNode = null;
         startEntry.Cost = 0;
         VisitStreet(currentViewdStreet);
-
+        Debug.ClearDeveloperConsole();
         do
         {
             currentViewdStreet = FindNewStreet();
+
+            if (currentViewdStreet == null) break;
             VisitStreet(currentViewdStreet);
             safty--;
-        } while (nodeID != currentViewdStreet.GetComponent<Street>().EndNode.GetComponent<Node>().NodeID && safty > 0);
 
-        if (safty > 0)
+        } while (nodeID != currentViewdStreet.GetComponent<Street>().EndNode.GetComponent<Node>().NodeID && safty != 0);
+
+        if (safty == 0)
         {
             Debug.Log("Error No Path found");
         }
         else
         {
-            Debug.Log("Create Path" + vistetPaths.Count);
+            FindPath(nodeID, startNode);
         }
+    }
+
+    private void FindPath(int targetNode,int startNode)
+    {
+
+        //for(int i = 0; i < pathList.Length; i++)
+        //{
+        //    Waypoints.Clear();
+        //    if (pathList[i].Cost != 0.0f)
+        //    {
+        //        //Debug.Log( "TargetNode: "+pathList[i].TargetNode.GetComponent<Node>().NodeID + " Cost: " + pathList[i].Cost + "StartNode: " +pathList[i].PreviousNode.GetComponent<Node>().NodeID);
+        //        Waypoints.Add(pathList[i].TargetNode.GetComponent<Node>().Position);
+
+        //    }
+        //}
 
 
 
+        Waypoints.Clear();
+        currentWayPointListPosition = -1;
+        int currentTarget = targetNode;
+        bool errorNull = false;
+        do
+        {
+            for (int i = 0; i < pathList.Length; i++)
+            {
+                if(pathList[i].TargetNode == null) {
+                    errorNull = true;
+                    break; 
+                }
+                
+                if (pathList[i].TargetNode.GetComponent<Node>().NodeID == currentTarget)
+                {
+                    currentTarget = pathList[i].PreviousNode.GetComponent<Node>().NodeID;
+                    Waypoints.Add(pathList[i].TargetNode.GetComponent<Node>().Position);
+                    Debug.Log(pathList[i].TargetNode.GetComponent<Node>().Position);
+                    break;
+                }
 
+            }
+        } while (currentTarget != startNode && !errorNull);
 
-
-
-
-
-
+        Debug.Log("Waypoints:"+ Waypoints.Count);
+        Waypoints.Reverse();
 
     }
 
-    //private void FindNodsFromNode(Node node)
-    //{
-    //    // Wenn die Node in der Liste der Liste besuchten Nodes auftaucht
-    //    bool foundInVisited = false;
-    //    foreach (var item in visitedNodes)
-    //    {
-    //        if (item == node.GetComponent<Node>())
-    //        {
-    //            foundInVisited = true;
-    //            break;
-    //        }
-    //    }
-    //    if (foundInVisited) { return; }
-    //    visitedNodes.Add(node);
-
-    //    // Schaut sich die Angeschlossenen nodes hinzu speichert die niedrigste cost
-    //    float lowestCost = 99999999999999999; // ignore that shit
-    //    GameObject nodeWithLowestCost = null;
-
-
-    //    foreach (Street connectedStreet in node.GetComponent<Node>().ConnectedStreets)
-    //    {
-    //        if (connectedStreet.EndNode.GetComponent<Node>() != node.GetComponent<Node>())
-    //        {
-    //            // Wenn die jetzige straße einen niedrigeren Wert als die bisherige
-    //            if (connectedStreet.cost < lowestCost)
-    //            {
-    //                lowestCost = connectedStreet.cost;
-    //                nodeWithLowestCost = connectedStreet.EndNode.GetComponent<Node>();
-    //            }
-
-    //            // Wenn die Node in der Liste der noch Nicht Besuchten Nodes auftauch
-    //            bool foundInNotVisited = false;
-    //            foreach (var item in visitedNodes)
-    //            {
-    //                if (item == connectedStreet.EndNode.GetComponent<Node>())
-    //                {
-    //                    foundInNotVisited = true;
-    //                    break;
-    //                }
-    //            }
-
-    //            // Wenn Die Node in keine der Listen auftaucht füge sie ein
-    //            if (!foundInNotVisited)
-    //            {
-    //                notVisitedNodes.Add(connectedStreet.EndNode.GetComponent<Node>());
-
-    //            }
-    //        }
-    //    }
-
-    //    if(nodeWithLowestCost != null) 
-    //    { 
-    //    Path entry = new();
-    //    entry.TargetNode = nodeWithLowestCost;
-    //    entry.PreviousNode = node.GetComponent<Node>();
-    //    entry.Cost = lowestCost;
-    //    pathList.Add(entry);
-    //    }
-
-    //}
-
-    //private Node FindPrevoiusNodeOfPathByTargetNodeID(int targetNodeID)
-    //{
-    //    foreach (Path path in pathList)
-    //    {
-    //        if (path.TargetNode.GetComponent<Node>().NodeID == targetNodeID)
-    //            return path.PreviousNode.GetComponent<Node>();
-    //    }
-    //    return null;
-    //}
-
-    //private float FindPathCostByTargetNodeID(int targetNodeID)
-    //{
-    //    foreach (Path path in pathList)
-    //    {
-    //        if (path.TargetNode.NodeID == targetNodeID)
-    //        {
-    //            return path.Cost;
-    //        }
-    //    }
-    //    return 0f;
-    //}
-
-
     private GameObject FindNodeByID(int targetNodeID)
     {
+
         foreach (var item in trafficManager.GetComponent<TrafficManager>().NodeList)
         {
             if (item.GetComponent<Node>().NodeID == targetNodeID)
             {
+
                 return item;
             }
         }
+
         return null;
     }
 
@@ -473,6 +386,8 @@ public class Car : MonoBehaviour
         int targetNodeID = street.GetComponent<Street>().EndNode.GetComponent<Node>().NodeID;
         int startNodeID = street.GetComponent<Street>().StartNode.GetComponent<Node>().NodeID;
         float Cost = street.GetComponent<Street>().cost;
+
+        
 
 
         for (int i = 0; i < pathList.Length; i++)
@@ -493,8 +408,11 @@ public class Car : MonoBehaviour
         entry.TargetNode = FindNodeByID(targetNodeID);
         entry.PreviousNode = FindNodeByID(startNodeID); ;
         entry.Cost = Cost;
-        vistetPaths.Add(street);
+        
 
+        pathList[pathListPalce] = entry;
+        pathListPalce++;
+        
 
 
 
@@ -502,40 +420,50 @@ public class Car : MonoBehaviour
 
     private void FindPathsOnNode(GameObject Node)
     {
+        
         foreach (GameObject street in Node.GetComponent<Node>().ConnectedStreets)
         {
             UpdateIndexForPathList(street);
+            bool found = false;
+            foreach (var item in pathsToVisit)
+            {
+                if(street == item)
+                {
+                   found = true;
+                   break;
+                }
+
+            }
+            if (!found)
+            {
+                pathsToVisit.Add(street);
+            }
         }
     }
-
 
     private void VisitStreet(GameObject currentStreet)
     {
         // Get the Node
-
-
         int streetEndPointID = currentStreet.GetComponent<Street>().EndNode.GetComponent<Node>().NodeID;
         GameObject currentNode = FindNodeByID(streetEndPointID);
         FindPathsOnNode(currentNode);
         //Add to Visited Nodes
         vistetPaths.Add(currentStreet);
+
     }
 
     private GameObject FindNewStreet()
     {
-
         GameObject currentSelectedStreet = null;
         bool found = false;
         foreach (GameObject pathToVisit in pathsToVisit)
         {
-
             foreach (GameObject pathVisited in vistetPaths)
             {
                 if (pathToVisit == pathVisited)
                 {
                     found = true;
                     break;
-
                 }
             }
             if (found)
@@ -548,22 +476,19 @@ public class Car : MonoBehaviour
                 {
                     currentSelectedStreet = pathToVisit;
                 }
-                else
+                if (currentSelectedStreet.GetComponent<Street>().cost > pathToVisit.GetComponent<Street>().cost)
                 {
-                    if (currentSelectedStreet.GetComponent<Street>().cost > pathToVisit.GetComponent<Street>().cost)
-                    {
-                        currentSelectedStreet = pathToVisit;
-                        // Erhöhe Cost
-                        pathCost = pathCost + currentSelectedStreet.GetComponent<Street>().cost;
+                    currentSelectedStreet = pathToVisit;
+                    // Erhöhe Cost
+                    pathCost = pathCost + currentSelectedStreet.GetComponent<Street>().cost;
 
-                    }
                 }
+
             }
         }
 
         return currentSelectedStreet;
     }
-
 
     private void DeleteSelf()
     {
