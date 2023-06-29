@@ -154,7 +154,7 @@ public class TrafficManager : MonoBehaviour
     public void DeleteNode(GameObject node)
     {
         node.GetComponent<Node>().DeleteSphere();
-        foreach (Street street in node.GetComponent<Node>().ConnectedStreets) DeleteStreet(street.gameObject);
+        foreach (GameObject street in node.GetComponent<Node>().ConnectedStreets) DeleteStreet(street.gameObject);
         nodeList.Remove(node);
         Destroy(node);
     }
