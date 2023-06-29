@@ -8,7 +8,7 @@ using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Random = System.Random;
 
-public struct Path
+public struct Path // this struct is very funny
 {
     private GameObject targetNode;
     private float cost;
@@ -29,9 +29,6 @@ public struct Path
         readonly get { return previousNode; }
         set { previousNode = value; }
     }
-
-
-
 }
 
 public enum CarBehaviour
@@ -67,7 +64,7 @@ public class Car : MonoBehaviour
     int currentWayPointListPosition;
     [SerializeField, HideInInspector]
     int forcedStreetID;
-    int pathListPalce = 0; // Bitte Ignorieren
+    int pathListPalce = 0; // pleas Ignore
     [SerializeField, HideInInspector]
     Vector3 targetLocation;
     [SerializeField, HideInInspector]
@@ -87,9 +84,9 @@ public class Car : MonoBehaviour
     [SerializeField, HideInInspector]
     Node lastEndNode;
     [SerializeField, HideInInspector]
-    Path[] pathList = new Path[100];
+    Path[] pathList = new Path[500];
 
-    float pathCost = 0;
+    float pathCost = 0; //do not touch!!!
     bool dijkstraMode = false;
 
     List<GameObject> pathsToVisit = new();
@@ -186,18 +183,17 @@ public class Car : MonoBehaviour
         {
             currentWayPointListPosition++;
             targetLocation = Waypoints[currentWayPointListPosition];
-            
         }
         else
         {
 
             if (FindNextStreet()) targetLocation = Waypoints[0];
             {
-                
                 currentWayPointListPosition = 0;
             }
         }
     }
+
 
     private bool FindNextStreet()
     {
@@ -266,6 +262,7 @@ public class Car : MonoBehaviour
         return availableStreets[randomIndex];
     }
 
+    // for the fast boys
     private void Accelerate()
     {
         if (speed < maxSpeed) speed += acceleration;
@@ -283,7 +280,7 @@ public class Car : MonoBehaviour
         dijkstraMode = true;
         int safty = 100;
         int startNode = currentStreet.GetComponent<Street>().EndNode.GetComponent<Node>().NodeID;
-        // Die Straße die sich gerade Angeschaut wird
+        // the current sStreet
         GameObject currentViewdStreet = currentStreet;
         // Create Start Index
         Path startEntry = new Path();
@@ -291,7 +288,7 @@ public class Car : MonoBehaviour
         startEntry.PreviousNode = null;
         startEntry.Cost = 0;
         VisitStreet(currentViewdStreet);
-        Debug.ClearDeveloperConsole();
+        Debug.ClearDeveloperConsole(); // sometimes
         do
         {
             currentViewdStreet = FindNewStreet();
@@ -305,6 +302,7 @@ public class Car : MonoBehaviour
         if (safty == 0)
         {
             Debug.Log("Error No Path found");
+            dijkstraMode = false;
         }
         else
         {
@@ -314,7 +312,6 @@ public class Car : MonoBehaviour
 
     private void FindPath(int targetNode,int startNode)
     {
-
         //for(int i = 0; i < pathList.Length; i++)
         //{
         //    Waypoints.Clear();
@@ -322,12 +319,9 @@ public class Car : MonoBehaviour
         //    {
         //        //Debug.Log( "TargetNode: "+pathList[i].TargetNode.GetComponent<Node>().NodeID + " Cost: " + pathList[i].Cost + "StartNode: " +pathList[i].PreviousNode.GetComponent<Node>().NodeID);
         //        Waypoints.Add(pathList[i].TargetNode.GetComponent<Node>().Position);
-
         //    }
         //}
-
-
-
+        // ################### This Code is the finest Cope
         Waypoints.Clear();
         currentWayPointListPosition = -1;
         int currentTarget = targetNode;
@@ -336,23 +330,23 @@ public class Car : MonoBehaviour
         {
             for (int i = 0; i < pathList.Length; i++)
             {
-                if(pathList[i].TargetNode == null) {
+                // WHYYY????
+                if (pathList[i].TargetNode == null) 
+                {
                     errorNull = true;
                     break; 
                 }
-                
-                if (pathList[i].TargetNode.GetComponent<Node>().NodeID == currentTarget)
+                // Ah thats why!
+                if (pathList[i].TargetNode.GetComponent<Node>().NodeID == currentTarget) 
                 {
                     currentTarget = pathList[i].PreviousNode.GetComponent<Node>().NodeID;
                     Waypoints.Add(pathList[i].TargetNode.GetComponent<Node>().Position);
-                    Debug.Log(pathList[i].TargetNode.GetComponent<Node>().Position);
                     break;
                 }
 
             }
         } while (currentTarget != startNode && !errorNull);
 
-        Debug.Log("Waypoints:"+ Waypoints.Count);
         Waypoints.Reverse();
 
     }
@@ -441,7 +435,6 @@ public class Car : MonoBehaviour
         FindPathsOnNode(currentNode);
         //Add to Visited Nodes
         vistetPaths.Add(currentStreet);
-
     }
 
     private GameObject FindNewStreet()
@@ -487,7 +480,4 @@ public class Car : MonoBehaviour
         Destroy(cube);
         Destroy(gameObject);
     }
-
-
-
 }
