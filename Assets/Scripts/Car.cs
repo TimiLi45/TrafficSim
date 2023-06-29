@@ -179,7 +179,7 @@ public class Car : MonoBehaviour
         cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
         cube.name = "CarCube";
         cube.transform.parent = gameObject.transform;
-                cube.GetComponent<Renderer>().material.color = UnityEngine.Random.ColorHSV();
+        cube.GetComponent<Renderer>().material.color = UnityEngine.Random.ColorHSV();
         boxCollider = this.AddComponent<BoxCollider>();
         gameObject.AddComponent<Rigidbody>();
     }

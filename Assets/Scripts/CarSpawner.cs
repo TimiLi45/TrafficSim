@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Unity.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -23,14 +22,24 @@ public class CarSpawner  : MonoBehaviour
     public void SetData(GameObject trafficManager, Vector3 position)
     {
         this.trafficManager = trafficManager;
-        this.position = position;
         connectedNode = trafficManager.GetComponent<TrafficManager>().FindNodeWithPosition(position).GetComponent<Node>();
+        this.position = connectedNode.Position;
+        gameObject.transform.position = connectedNode.Position;
+        GenerateRayCastHitCylinder();
         // debug model, may be replaced later, or removed
         GameObject cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         cylinder.transform.position = connectedNode.Position;
         cylinder.name = "CarSpawnerCylinder";
         cylinder.transform.parent = gameObject.transform;
         cylinder.GetComponent<Collider>().enabled = false;
+    }
+
+    private void GenerateRayCastHitCylinder()
+    {
+        gameObject.AddComponent<CapsuleCollider>();
+        gameObject.GetComponent<CapsuleCollider>().isTrigger = true;
+        gameObject.GetComponent<CapsuleCollider>().radius = 1.01f;
+        gameObject.GetComponent<CapsuleCollider>().height = 3.5f;
     }
 
     private void Update()
