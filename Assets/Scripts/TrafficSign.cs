@@ -13,10 +13,10 @@ public enum TrafficSignTypes
 
 public class TrafficSign : MonoBehaviour
 {
-    [SerializeField, HideInInspector]
+    //[SerializeField, HideInInspector]
     int value = 0;
     
-    [SerializeField, HideInInspector]
+    //[SerializeField, HideInInspector]
     TrafficSignTypes selectedType = TrafficSignTypes.maxSpeed;
 
     public void SetData(TrafficSignTypes type, int value)

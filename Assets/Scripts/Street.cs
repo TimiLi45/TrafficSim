@@ -109,8 +109,8 @@ public class Street : MonoBehaviour
             generateEndWayPoint = true;
         }
         else { endNode = trafficManager.FindNodeWithPosition(endPoint); }
-        startNode.GetComponent<Node>().AddConnectedStreet(this);
-        endNode.GetComponent<Node>().AddConnectedStreet(this);
+        startNode.GetComponent<Node>().AddConnectedStreet(gameObject);
+        endNode.GetComponent<Node>().AddConnectedStreet(gameObject);
     }
 
     private void GenerateWayPoints(float spacing, bool generateStartWayPoint = true, bool generateEndWayPoint = true)
@@ -139,8 +139,8 @@ public class Street : MonoBehaviour
     public void DeleteStreetContents()
     {
         DeleteWayPoints();
-        startNode.GetComponent<Node>().RemoveConnectedStreet(this);
-        endNode.GetComponent<Node>().RemoveConnectedStreet(this);
+        startNode.GetComponent<Node>().RemoveConnectedStreet(gameObject);
+        endNode.GetComponent<Node>().RemoveConnectedStreet(gameObject);
         DeleteNodes();
         DeleteLine();
     }
