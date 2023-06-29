@@ -17,18 +17,11 @@ public class InteractionManager : MonoBehaviour
     bool renderingStreetIDs = false;
     [SerializeField, HideInInspector]
     bool renderingNodeIDsAndPositions = false;
-    [SerializeField, HideInInspector]
-    List<GameObject> wayPointSpheres;
 
     void Awake()
     {
         mainCamera = Camera.main;
         trafficManager = gameObject.GetComponent<TrafficManager>();
-    }
-
-    void Start()
-    {
-        wayPointSpheres = new List<GameObject>();
     }
 
     private void Update()
@@ -45,10 +38,9 @@ public class InteractionManager : MonoBehaviour
     {
         if (!Keyboard.current.f3Key.isPressed)
         {
-            foreach (GameObject sphere in wayPointSpheres)
-            {
-                Destroy(sphere);
-            }
+            foreach (GameObject street in trafficManager.StreetList)
+                foreach (GameObject wayPointSphere in street.GetComponent<Street>().WayPointSpheres)
+                    wayPointSphere.SetActive(false);
             renderingWayPoints = false;
             return;
         }
@@ -56,17 +48,8 @@ public class InteractionManager : MonoBehaviour
         if(renderingWayPoints) return;
         renderingWayPoints = true;
         foreach (GameObject street in trafficManager.StreetList)
-        {
-            foreach (Vector3 wayPoint in street.GetComponent<Street>().WayPoints)
-            {
-                GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                sphere.transform.localScale = new(trafficManager.WayPointSphereSize, trafficManager.WayPointSphereSize, trafficManager.WayPointSphereSize);
-                sphere.transform.position = wayPoint;
-                sphere.layer = LayerMask.NameToLayer("Ignore Raycast");
-                sphere.GetComponent<SphereCollider>().enabled = false;
-                wayPointSpheres.Add(sphere);
-            }
-        }
+            foreach (GameObject wayPointSphere in street.GetComponent<Street>().WayPointSpheres)
+                wayPointSphere.SetActive(true);
     }
 
     private void RenderStreetIDs()
@@ -76,7 +59,8 @@ public class InteractionManager : MonoBehaviour
         {
             foreach (GameObject street in trafficManager.StreetList)
             {
-                    Destroy(street.GetComponent<TextMesh>());
+                if (street.transform.Find("streetDebug") == null) continue;
+                Destroy(street.transform.Find("streetDebug").gameObject);
             }
             renderingStreetIDs = false;
             return;
@@ -87,14 +71,17 @@ public class InteractionManager : MonoBehaviour
 
         foreach (GameObject street in trafficManager.StreetList)
         {
-            street.AddComponent<TextMesh>();
-            street.GetComponent<TextMesh>().text = street.GetComponent<Street>().StreetID.ToString()+"\n";
-            street.GetComponent<TextMesh>().color = Color.magenta;
-            street.GetComponent<TextMesh>().characterSize = .1f;
-            street.GetComponent<TextMesh>().fontSize = 150;
-            street.GetComponent<TextMesh>().anchor = TextAnchor.LowerCenter;
-            street.GetComponent<TextMesh>().alignment = TextAlignment.Center;
-            street.GetComponent<TextMesh>().lineSpacing = .9f;
+            GameObject streetDebug = new("streetDebug");
+            streetDebug.transform.SetParent(street.transform);
+            streetDebug.transform.position = Vector3.Lerp(street.GetComponent<Street>().StartPoint, street.GetComponent<Street>().EndPoint, .5f);
+            streetDebug.AddComponent<TextMesh>();
+            streetDebug.GetComponent<TextMesh>().text = street.GetComponent<Street>().StreetID.ToString()+"\n";
+            streetDebug.GetComponent<TextMesh>().color = Color.magenta;
+            streetDebug.GetComponent<TextMesh>().characterSize = .1f;
+            streetDebug.GetComponent<TextMesh>().fontSize = 150;
+            streetDebug.GetComponent<TextMesh>().anchor = TextAnchor.LowerCenter;
+            streetDebug.GetComponent<TextMesh>().alignment = TextAlignment.Center;
+            streetDebug.GetComponent<TextMesh>().lineSpacing = .9f;
         }
     }
 
@@ -132,8 +119,10 @@ public class InteractionManager : MonoBehaviour
         if (!renderingStreetIDs) return;
         foreach (GameObject street in trafficManager.StreetList)
         {
-            if (street.GetComponent<TextMesh>() == null) continue;
-            street.GetComponent<TextMesh>().transform.rotation = Quaternion.LookRotation((street.GetComponent<TextMesh>().transform.position-mainCamera.transform.position).normalized);
+            if (street.transform.Find("streetDebug") == null) continue;
+            GameObject streetDebug = street.transform.Find("streetDebug").gameObject;
+            if (streetDebug.GetComponent<TextMesh>() == null) continue;
+            streetDebug.GetComponent<TextMesh>().transform.rotation = Quaternion.LookRotation((streetDebug.GetComponent<TextMesh>().transform.position-mainCamera.transform.position).normalized);
         }
     }
 

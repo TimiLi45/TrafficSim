@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 public class Street : MonoBehaviour
 {
@@ -23,15 +22,16 @@ public class Street : MonoBehaviour
     Vector3 endPoint;
     [SerializeField, HideInInspector]
     List<Vector3> wayPoints;
+    [SerializeField, HideInInspector]
+    List<GameObject> wayPointSpheres;
 
     [SerializeField, HideInInspector]
     GameObject startNode;
     [SerializeField, HideInInspector]
     GameObject endNode;
-
     [SerializeField, HideInInspector]
     GameObject streetLine;
-  
+
     public int StreetID
     {
         get { return streetID; }
@@ -48,6 +48,10 @@ public class Street : MonoBehaviour
     {
         get { return wayPoints; }
     }
+    public List<GameObject> WayPointSpheres
+    {
+        get { return wayPointSpheres; }
+    }
     public GameObject StartNode
     {
         get { return startNode; }
@@ -56,13 +60,15 @@ public class Street : MonoBehaviour
     {
         get { return endNode; }
     }
+
     public void SetData(TrafficManager trafficManager, Vector3 startPoint, Vector3 endPoint)
     {
+        wayPoints = new();
+        wayPointSpheres = new();
+        streetLine = new();
         this.trafficManager = trafficManager;
         this.startPoint = startPoint;
         this.endPoint = endPoint;
-        wayPoints = new List<Vector3>();
-        streetLine = new GameObject();
         streetID = currentStreetID++;
         // I have to check if I should generate WayPoints and the start and end of the street,
         // because if the street connects to another noder, it already has a WayPoint at that location.
@@ -84,6 +90,7 @@ public class Street : MonoBehaviour
         this.endPoint = endNode.GetComponent<Node>().Position;
 
         GenerateWayPoints(trafficManager.WayPointDistance, generateStartWayPoint, generateEndWayPoint);
+        GenerateWayPointSpheres();
 
         GenerateModel();
     }
@@ -124,6 +131,22 @@ public class Street : MonoBehaviour
             previousPoint = previousPoint + direction * spacing;
         }
         if (generateEndWayPoint) wayPoints.Add(endPoint);
+    }
+
+    private void GenerateWayPointSpheres()
+    {
+        foreach (Vector3 wayPoint in wayPoints)
+        {
+            GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            sphere.transform.localScale = new(trafficManager.WayPointSphereSize, trafficManager.WayPointSphereSize, trafficManager.WayPointSphereSize);
+            sphere.transform.position = wayPoint;
+            sphere.layer = LayerMask.NameToLayer("Ignore Raycast");
+            sphere.GetComponent<SphereCollider>().enabled = false;
+            sphere.SetActive(false);
+            sphere.name = wayPoint.ToString();
+            sphere.transform.SetParent(gameObject.transform);
+            wayPointSpheres.Add(sphere);
+        }
     }
 
     private void GenerateModel()
