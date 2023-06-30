@@ -15,6 +15,8 @@ public class InteractionManager : MonoBehaviour
     bool renderingStreetIDs = false;
     [SerializeField, HideInInspector]
     bool renderingNodeIDsAndPositions = false;
+    [SerializeField, HideInInspector]
+    bool renderingNodeIDs = false;
 
     void Awake()
     {
@@ -26,9 +28,11 @@ public class InteractionManager : MonoBehaviour
     {
         RenderWaypoints();
         RenderStreetIDs();
+        RenderNodeIDs();
         RenderNodeIDsAndPositions();
 
         RotateStreetIDs();
+        RotateNodeIDs();
         RotateNodeIDsAndPositions();
     }
 
@@ -49,8 +53,8 @@ public class InteractionManager : MonoBehaviour
 
     private void RenderStreetIDs()
     {
-        if (!Keyboard.current.f3Key.isPressed && !renderingStreetIDs) return;
-        if (!Keyboard.current.f3Key.isPressed && renderingStreetIDs)
+        if (!Keyboard.current.tabKey.isPressed && !renderingStreetIDs) return;
+        if (!Keyboard.current.tabKey.isPressed && renderingStreetIDs)
         {
             foreach (GameObject street in trafficManager.StreetList)
             {
@@ -71,7 +75,6 @@ public class InteractionManager : MonoBehaviour
             streetDebug.transform.position = Vector3.Lerp(street.GetComponent<Street>().StartPoint, street.GetComponent<Street>().EndPoint, .5f);
             streetDebug.AddComponent<TextMesh>();
             streetDebug.GetComponent<TextMesh>().text = street.GetComponent<Street>().StreetID.ToString()+"\n";
-            streetDebug.GetComponent<TextMesh>().color = Color.magenta;
             streetDebug.GetComponent<TextMesh>().characterSize = .1f;
             streetDebug.GetComponent<TextMesh>().fontSize = 150;
             streetDebug.GetComponent<TextMesh>().anchor = TextAnchor.LowerCenter;
@@ -107,7 +110,33 @@ public class InteractionManager : MonoBehaviour
             node.GetComponent<TextMesh>().lineSpacing = .9f;
         }
     }
+    private void RenderNodeIDs()
+    {
+        if (!Keyboard.current.tabKey.isPressed && !renderingNodeIDs) return;
+        if (!Keyboard.current.tabKey.isPressed && renderingNodeIDs)
+        {
+            foreach (GameObject node in trafficManager.NodeList)
+            {
+                Destroy(node.GetComponent<TextMesh>());
+            }
+            renderingNodeIDs = false;
+            return;
+        }
 
+        if (renderingNodeIDs) return;
+        renderingNodeIDs = true;
+
+        foreach (GameObject node in trafficManager.NodeList)
+        {
+            node.AddComponent<TextMesh>();
+            node.GetComponent<TextMesh>().text = node.GetComponent<Node>().NodeID.ToString();
+            node.GetComponent<TextMesh>().characterSize = .1f;
+            node.GetComponent<TextMesh>().fontSize = 100;
+            node.GetComponent<TextMesh>().anchor = TextAnchor.LowerCenter;
+            node.GetComponent<TextMesh>().alignment = TextAlignment.Center;
+            node.GetComponent<TextMesh>().lineSpacing = .9f;
+        }
+    }
 
     private void RotateStreetIDs()
     {
@@ -124,6 +153,16 @@ public class InteractionManager : MonoBehaviour
     private void RotateNodeIDsAndPositions()
     {
         if (!renderingNodeIDsAndPositions) return;
+        foreach (GameObject node in trafficManager.NodeList)
+        {
+            if (node.GetComponent<TextMesh>() == null) continue;
+            node.GetComponent<TextMesh>().transform.rotation = Quaternion.LookRotation((node.GetComponent<TextMesh>().transform.position - mainCamera.transform.position).normalized);
+        }
+    }
+
+    private void RotateNodeIDs()
+    {
+        if (!renderingNodeIDs) return;
         foreach (GameObject node in trafficManager.NodeList)
         {
             if (node.GetComponent<TextMesh>() == null) continue;

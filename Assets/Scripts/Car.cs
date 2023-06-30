@@ -67,7 +67,7 @@ public class Car : MonoBehaviour
     [SerializeField, HideInInspector]
     int currentWayPointListPosition;
     [SerializeField, HideInInspector]
-    int forcedStreetID;
+    int forcedStreetID = -1;
     [SerializeField, HideInInspector]
     int pathListPalce = 0;
 
