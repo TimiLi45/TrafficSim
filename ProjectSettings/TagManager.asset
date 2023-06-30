@@ -6,6 +6,7 @@ TagManager:
   tags:
   - TrafficSi
   - Ground
+  - Car
   layers:
   - Default
   - TransparentFX

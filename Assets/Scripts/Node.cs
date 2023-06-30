@@ -23,6 +23,9 @@ public class Node : MonoBehaviour
     [SerializeField, HideInInspector]
     GameObject sphere;
 
+    [SerializeField, HideInInspector]
+    Material streetMaterial;
+
     public int NodeID
     {
         get { return nodeID; }
@@ -37,12 +40,13 @@ public class Node : MonoBehaviour
         get { return position; }
     }
     
-    public void SetData(TrafficManager trafficManager ,Vector3 position)
+    public void SetData(TrafficManager trafficManager, Vector3 position, Material streetMaterial)
     {
         connectedStreets = new List<GameObject>();
         this.trafficManager = trafficManager;
         nodeID = currentNodeID++;
         this.position = position;
+        this.streetMaterial = streetMaterial;
         trafficManager.NodeList.Add(gameObject);
         GenerateRayCastHitSphere();
         // The sphere for rendering Nodes is generated here for now, since later it won't be done in this class at all, but in the InteractionManager as a Debug Render.
@@ -52,7 +56,7 @@ public class Node : MonoBehaviour
         sphere.layer = LayerMask.NameToLayer("Ignore Raycast");
         sphere.name = "NodeSphere";
         sphere.transform.parent = gameObject.transform;
-        sphere.GetComponent<Renderer>().material.color = Color.gray;
+        sphere.GetComponent<Renderer>().material = streetMaterial;
         sphere.GetComponent<SphereCollider>().enabled = false;
     }
 

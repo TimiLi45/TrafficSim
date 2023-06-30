@@ -1,14 +1,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using Unity.VisualScripting;
-using Unity.VisualScripting.Antlr3.Runtime;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Random = System.Random;
 
-public struct Path // this struct is very funny
+public struct Path
 {
     private GameObject targetNode;
     private float cost;
@@ -48,6 +47,11 @@ public class Car : MonoBehaviour
     GameObject cube;
     [SerializeField, HideInInspector]
     BoxCollider boxCollider;
+
+    [SerializeField, HideInInspector]
+    bool hitOtherCar;
+    [SerializeField, HideInInspector]
+    float timeBevoreSelfDeleteAfterHit = 10f;
     [SerializeField, HideInInspector]
     float stopTimeLeft = 1f;
     [SerializeField, HideInInspector]
@@ -64,7 +68,9 @@ public class Car : MonoBehaviour
     int currentWayPointListPosition;
     [SerializeField, HideInInspector]
     int forcedStreetID;
-    int pathListPalce = 0; // pleas Ignore
+    [SerializeField, HideInInspector]
+    int pathListPalce = 0;
+
     [SerializeField, HideInInspector]
     Vector3 targetLocation;
     [SerializeField, HideInInspector]
@@ -84,9 +90,11 @@ public class Car : MonoBehaviour
     [SerializeField, HideInInspector]
     Node lastEndNode;
     [SerializeField, HideInInspector]
-    Path[] pathList = new Path[500];
+    Path[] pathList = new Path[500]; //Needs to be changed to list, rather difficult. Will do later.
 
-    float pathCost = 0; //do not touch!!!
+    [SerializeField, HideInInspector]
+    float pathCost = 0;
+    [SerializeField, HideInInspector]
     bool dijkstraMode = false;
 
     List<GameObject> pathsToVisit = new();
@@ -108,7 +116,7 @@ public class Car : MonoBehaviour
         set { currentBehaviour = value; }
     }
 
-    public void SetData(GameObject trafficManager, Node startNode)
+    public void SetData(GameObject trafficManager, Node startNode, Color color)
     {
         if (startNode == null) DeleteSelf();
         this.trafficManager = trafficManager;
@@ -127,11 +135,26 @@ public class Car : MonoBehaviour
         }
         if (currentStreet == null) DeleteSelf();
 
-        AddMesh();
+        GenerateModel(color);
         currentBehaviour = CarBehaviour.drive;
     }
 
-    private void Update()
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.tag == "Car")
+        {
+            hitOtherCar = true;
+            currentBehaviour = CarBehaviour.none;
+            int[] randomX = new int[2] { UnityEngine.Random.Range(10, 30), UnityEngine.Random.Range(-10, -30) };
+            int[] randomY = new int[2] { UnityEngine.Random.Range(10, 30), UnityEngine.Random.Range(-10, -30) };
+            int[] randomZ = new int[2] { UnityEngine.Random.Range(10, 30), UnityEngine.Random.Range(-10, -30) };
+            Vector3 randompoint = new Vector3(randomX[UnityEngine.Random.Range(0, 2)], randomY[UnityEngine.Random.Range(0, 2)], randomZ[UnityEngine.Random.Range(0, 2)]);
+            gameObject.GetComponent<Rigidbody>().velocity = randompoint;
+        }
+    }
+
+
+    void Update()
     {
         switch (currentBehaviour)
         {
@@ -154,25 +177,39 @@ public class Car : MonoBehaviour
                 break;
         }
 
-        // replace later with model
-        if (cube != null)
-        {
-            cube.transform.position = transform.position;
-            boxCollider.transform.position = transform.position;
-        }
-
+        if (hitOtherCar) return;
+        if (cube != null) cube.transform.position = new(transform.position.x, boxCollider.transform.position.y, transform.position.z);
         transform.position = Vector3.MoveTowards(transform.position, targetLocation, speed * Time.deltaTime);
 
         if (Vector3.Distance(transform.position, targetLocation) < maxDistanceFromNextNodeBeforeSwitching)
             SetTargetToNextWaypointOrStreet();
+
+        // replace later with model
+        if (targetLocation != null && cube != null)
+        {
+            cube.transform.position = new(transform.position.x,boxCollider.transform.position.y,transform.position.z);
+            Quaternion rotation = Quaternion.LookRotation((targetLocation - cube.transform.position).normalized);
+            gameObject.transform.rotation = new(rotation.x,0,rotation.z,0);
+        }
     }
 
-    private void AddMesh()
+    void FixedUpdate()
     {
+        if(!hitOtherCar) return;
+        timeBevoreSelfDeleteAfterHit--;
+        if (timeBevoreSelfDeleteAfterHit > 0f) return;
+        DeleteSelf();
+    }
+
+    private void GenerateModel(Color color)
+    {
+        // Replace later with actual model.
         cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
         cube.name = "CarCube";
         cube.transform.parent = gameObject.transform;
-        cube.GetComponent<Renderer>().material.color = UnityEngine.Random.ColorHSV();
+        cube.transform.position = gameObject.transform.position;
+        cube.GetComponent<Renderer>().material.color = color;
+        cube.transform.localScale = new Vector3(1f, .9f, 1.5f);
         boxCollider = this.AddComponent<BoxCollider>();
         gameObject.AddComponent<Rigidbody>();
     }
@@ -193,7 +230,6 @@ public class Car : MonoBehaviour
             }
         }
     }
-
 
     private bool FindNextStreet()
     {

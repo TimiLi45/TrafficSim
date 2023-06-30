@@ -16,6 +16,7 @@ public enum TrafficGameObjectTypes
 public class TrafficManager : MonoBehaviour
 {
     public GameObject trafficSignPrefab;
+    public Material streetMaterial;
 
     [SerializeField]
     float nodeMergeDistance = 2.0f;
@@ -73,7 +74,7 @@ public class TrafficManager : MonoBehaviour
     {
         GameObject street = new("Street");
         street.transform.position = Vector3.Lerp(startPoint, endPoint, .5f);
-        street.AddComponent<Street>().SetData(this, startPoint, endPoint);
+        street.AddComponent<Street>().SetData(this, startPoint, endPoint, streetMaterial);
         street.transform.SetParent(transform.Find("Streets").transform, true);
         streetList.Add(street);
         DetectAndGenerateIntersectionsOnStreet(street.GetComponent<Street>());

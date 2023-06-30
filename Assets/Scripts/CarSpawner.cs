@@ -8,12 +8,18 @@ public class CarSpawner  : MonoBehaviour
 {
     [SerializeField, HideInInspector]
     GameObject trafficManager;
+
     [SerializeField, HideInInspector]
     Node connectedNode;
+
     [SerializeField, HideInInspector]
     Vector3 position;
+
     [SerializeField, HideInInspector]
     private float timeRemaining = 3;
+
+    [SerializeField, HideInInspector]
+    GameObject cylinder;
 
     public Vector3 Position
     {
@@ -27,10 +33,11 @@ public class CarSpawner  : MonoBehaviour
         gameObject.transform.position = connectedNode.Position;
         GenerateRayCastHitCylinder();
         // debug model, may be replaced later, or removed
-        GameObject cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         cylinder.transform.position = connectedNode.Position;
         cylinder.name = "CarSpawnerCylinder";
         cylinder.transform.parent = gameObject.transform;
+        cylinder.GetComponent<Renderer>().material.color = UnityEngine.Random.ColorHSV();
         cylinder.GetComponent<Collider>().enabled = false;
     }
 
@@ -64,7 +71,9 @@ public class CarSpawner  : MonoBehaviour
         if (connectedNode == null) return;
         
         GameObject car = new("Car");
-        car.AddComponent<Car>().SetData(trafficManager, connectedNode);
+        car.transform.position = gameObject.transform.position;
+        car.AddComponent<Car>().SetData(trafficManager, connectedNode, cylinder.GetComponent<Renderer>().material.color);
         car.transform.SetParent(trafficManager.transform.Find("Cars"), true);
+        car.tag = "Car";
     }
 }
