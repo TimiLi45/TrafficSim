@@ -55,9 +55,9 @@ public class Car : MonoBehaviour
     [SerializeField, HideInInspector]
     float stopTimeLeft = 1f;
     [SerializeField, HideInInspector]
-    float acceleration = .05f;
+    float acceleration = .5f;
     [SerializeField, HideInInspector]
-    float deceleration = 0.1f;
+    float deceleration = 1f;
     [SerializeField, HideInInspector]
     float speed = 0f;
     [SerializeField, HideInInspector]
