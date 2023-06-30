@@ -2,9 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using Unity.VisualScripting.Antlr3.Runtime;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.InputSystem.HID;
-using UnityEngine.InputSystem;
 using Debug = UnityEngine.Debug;
 using Random = System.Random;
 
@@ -60,20 +60,11 @@ public class Car : MonoBehaviour
     float maxSpeed = 10f;
     [SerializeField, HideInInspector]
     float maxDistanceFromNextNodeBeforeSwitching = 1f;
-
-    [SerializeField, HideInInspector]
-    float maxRangeOfSight = 5f;
-    [SerializeField, HideInInspector]
-    float reactionTime = 2f;
-    [SerializeField, HideInInspector]
-    float distanceFromNextCar = 2f;
-
     [SerializeField, HideInInspector]
     int currentWayPointListPosition;
     [SerializeField, HideInInspector]
     int forcedStreetID;
-    [SerializeField, HideInInspector]
-    int pathListPalce = 0; // Please Ignore
+    int pathListPalce = 0; // pleas Ignore
     [SerializeField, HideInInspector]
     Vector3 targetLocation;
     [SerializeField, HideInInspector]
@@ -94,13 +85,9 @@ public class Car : MonoBehaviour
     Node lastEndNode;
     [SerializeField, HideInInspector]
     Path[] pathList = new Path[500];
-    
-    [SerializeField, HideInInspector]
-    float pathCost = 0;
-    [SerializeField, HideInInspector]
+
+    float pathCost = 0; //do not touch!!!
     bool dijkstraMode = false;
-    [SerializeField, HideInInspector]
-    int targetNodeID = -1;
 
     List<GameObject> pathsToVisit = new();
     List<GameObject> vistetPaths = new();
@@ -126,12 +113,6 @@ public class Car : MonoBehaviour
         if (startNode == null) DeleteSelf();
         this.trafficManager = trafficManager;
 
-        // Have to set forcedStreetID to -1, because in C# int Variables start off with a value of 0,
-        // meaning if I test later if this Variable is 0 or more, it will trigger, even though it hasn't been set.
-        // Nobody could ever want to not set a variable before using it, so of course you set it to 0, instead of null.
-        // Int is also nut nullable. Why?
-        forcedStreetID = -1; 
-
         foreach (GameObject connectedStreet in startNode.GetComponent<Node>().ConnectedStreets)
         {
             if (connectedStreet == null) continue;
@@ -152,9 +133,6 @@ public class Car : MonoBehaviour
 
     private void Update()
     {
-        // DO NOT UNDER ANY CIRCUMSTANCES UNCOMMEND;
-        // CARS WILL CRASH INTO EACHOTHER BECAUSE THEY THINK IT IS A GREAT IDEA TO BREAKCHECK SOMEONE 1 METER BEHIND YOU!
-        //ReactToSourroundings();
         switch (currentBehaviour)
         {
             case CarBehaviour.none:
@@ -180,7 +158,7 @@ public class Car : MonoBehaviour
         if (cube != null)
         {
             cube.transform.position = transform.position;
-            cube.transform.rotation = Quaternion.FromToRotation(transform.position,targetLocation);
+            boxCollider.transform.position = transform.position;
         }
 
         transform.position = Vector3.MoveTowards(transform.position, targetLocation, speed * Time.deltaTime);
@@ -199,34 +177,6 @@ public class Car : MonoBehaviour
         gameObject.AddComponent<Rigidbody>();
     }
 
-    private void ReactToSourroundings()
-    {
-        if (Mouse.current.position == null) return;
-
-        GameObject hitObject = null;
-        RaycastHit hit;
-
-        Vector3 direction = -(transform.position - targetLocation).normalized;
-
-        Physics.Raycast(gameObject.transform.position, direction, out hit, maxRangeOfSight);
-        if(hit.collider != null) hitObject = hit.collider.gameObject;
-        Physics.Raycast(gameObject.transform.position, direction, out hit, maxRangeOfSight);
-        if (hit.collider != null) hitObject = hit.collider.gameObject;
-        Physics.Raycast(gameObject.transform.position, direction, out hit, maxRangeOfSight);
-        if (hit.collider != null) hitObject = hit.collider.gameObject;
-        Debug.DrawRay(gameObject.transform.position, direction, Color.red);
-
-        if (hitObject == null) return;
-        if (hitObject.transform.parent == null) return;
-        GameObject hitCar = hitObject.transform.parent.gameObject;
-        if (hitCar.GetComponent<Car>() == null) return;
-
-        if (Vector3.Distance(hitCar.transform.position, gameObject.transform.position) <= distanceFromNextCar)
-        {
-            currentBehaviour = CarBehaviour.stop;
-        }
-    }
-
     private void SetTargetToNextWaypointOrStreet()
     {
         if (currentWayPointListPosition + 1 < Waypoints.Count)
@@ -236,6 +186,7 @@ public class Car : MonoBehaviour
         }
         else
         {
+
             if (FindNextStreet()) targetLocation = Waypoints[0];
             {
                 currentWayPointListPosition = 0;
@@ -255,9 +206,6 @@ public class Car : MonoBehaviour
         if (currentStreet == lastStreet || currentStreet == null)
         {
             DeleteSelf();
-            // I have to return a bool here, because destroying this object does in fact not stop it from executing its code at least once.
-            // Noone could ever want to stop a GameObject from executing code and then destroy it,
-            // so there is no function for it, meaning I have to deal with this mess.
             return false;
         }
 
@@ -292,7 +240,7 @@ public class Car : MonoBehaviour
             if (connectedStreet.GetComponent<Street>().StreetID == currentStreet.GetComponent<Street>().StreetID) continue;
             if (!visitedStreets.Contains(connectedStreet)) availableStreets.Add(connectedStreet);
         }
-        
+
         if (availableStreets.Count <= 0) return null;
 
         // Can later be used, when end points or a goal exist, where a car will be deleted.
@@ -311,7 +259,8 @@ public class Car : MonoBehaviour
 
         Random random = new();
         int randomIndex = random.Next(0, availableStreets.Count - 1);
-        return availableStreets[randomIndex];    }
+        return availableStreets[randomIndex];
+    }
 
     // for the fast boys
     private void Accelerate()
@@ -329,7 +278,6 @@ public class Car : MonoBehaviour
     public void Dijkstra(int nodeID)
     {
         dijkstraMode = true;
-        targetNodeID = nodeID;
         int safty = 100;
         int startNode = currentStreet.GetComponent<Street>().EndNode.GetComponent<Node>().NodeID;
         // the current sStreet
@@ -340,6 +288,7 @@ public class Car : MonoBehaviour
         startEntry.PreviousNode = null;
         startEntry.Cost = 0;
         VisitStreet(currentViewdStreet);
+        Debug.ClearDeveloperConsole(); // sometimes
         do
         {
             currentViewdStreet = FindNewStreet();
@@ -424,6 +373,9 @@ public class Car : MonoBehaviour
         int startNodeID = street.GetComponent<Street>().StartNode.GetComponent<Node>().NodeID;
         float Cost = street.GetComponent<Street>().cost;
 
+        
+
+
         for (int i = 0; i < pathList.Length; i++)
         {
             if (pathList[i].TargetNode != null)
@@ -466,7 +418,6 @@ public class Car : MonoBehaviour
                    found = true;
                    break;
                 }
-
             }
             if (!found)
             {
