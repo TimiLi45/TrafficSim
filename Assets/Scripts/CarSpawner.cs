@@ -53,16 +53,12 @@ public class CarSpawner  : MonoBehaviour
             timeRemaining = 3;
             SpawnCar();
         }
-        if (trafficManager.GetComponent<TrafficManager>().FindNodeWithPosition(position) == null)
-        {
-            trafficManager.GetComponent<TrafficManager>().DeleteCarSpawner(gameObject);
-            return;
-        }
         if (!trafficManager.GetComponent<TrafficManager>().FindNodeWithPosition(position).Equals(connectedNode))
             connectedNode = trafficManager.GetComponent<TrafficManager>().FindNodeWithPosition(position).GetComponent<Node>();
         if (connectedNode == null) trafficManager.GetComponent<TrafficManager>().DeleteCarSpawner(gameObject);
-    }   
-
+    }
+    
+    // If this works you are lucky!
     private void SpawnCar()
     {
         if (connectedNode == null) return;
