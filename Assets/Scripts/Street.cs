@@ -156,6 +156,7 @@ public class Street : MonoBehaviour
         renderedLine.SetPosition(0, this.startPoint);
         renderedLine.SetPosition(1, this.endPoint);
         renderedLine.name = "StreetLine";
+        renderedLine.material.color = Color.gray;
         streetLine.transform.parent = gameObject.transform;
     }
 
