@@ -71,6 +71,7 @@ public class CarSpawner  : MonoBehaviour
         if (connectedNode == null) return;
         
         GameObject car = new("Car");
+        car.transform.position = gameObject.transform.position;
         car.AddComponent<Car>().SetData(trafficManager, connectedNode, cylinder.GetComponent<Renderer>().material.color);
         car.transform.SetParent(trafficManager.transform.Find("Cars"), true);
         car.tag = "Car";
