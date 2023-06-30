@@ -3,8 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using Unity.VisualScripting;
-using Unity.VisualScripting.Antlr3.Runtime;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Random = System.Random;
@@ -147,6 +145,11 @@ public class Car : MonoBehaviour
         {
             hitOtherCar = true;
             currentBehaviour = CarBehaviour.none;
+            int[] randomX = new int[2] { UnityEngine.Random.Range(10, 30), UnityEngine.Random.Range(-10, -30) };
+            int[] randomY = new int[2] { UnityEngine.Random.Range(10, 30), UnityEngine.Random.Range(-10, -30) };
+            int[] randomZ = new int[2] { UnityEngine.Random.Range(10, 30), UnityEngine.Random.Range(-10, -30) };
+            Vector3 randompoint = new Vector3(randomX[UnityEngine.Random.Range(0, 2)], randomY[UnityEngine.Random.Range(0, 2)], randomZ[UnityEngine.Random.Range(0, 2)]);
+            gameObject.GetComponent<Rigidbody>().velocity = randompoint;
         }
     }
 
@@ -175,7 +178,7 @@ public class Car : MonoBehaviour
         }
 
         if (hitOtherCar) return;
-
+        if (cube != null) cube.transform.position = new(transform.position.x, boxCollider.transform.position.y, transform.position.z);
         transform.position = Vector3.MoveTowards(transform.position, targetLocation, speed * Time.deltaTime);
 
         if (Vector3.Distance(transform.position, targetLocation) < maxDistanceFromNextNodeBeforeSwitching)
@@ -204,6 +207,7 @@ public class Car : MonoBehaviour
         cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
         cube.name = "CarCube";
         cube.transform.parent = gameObject.transform;
+        cube.transform.position = gameObject.transform.position;
         cube.GetComponent<Renderer>().material.color = color;
         cube.transform.localScale = new Vector3(1f, .9f, 1.5f);
         boxCollider = this.AddComponent<BoxCollider>();
