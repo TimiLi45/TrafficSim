@@ -52,6 +52,7 @@ public class Node : MonoBehaviour
         sphere.layer = LayerMask.NameToLayer("Ignore Raycast");
         sphere.name = "NodeSphere";
         sphere.transform.parent = gameObject.transform;
+        sphere.GetComponent<Renderer>().material.color = Color.gray;
         sphere.GetComponent<SphereCollider>().enabled = false;
     }
 
