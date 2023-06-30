@@ -9,13 +9,15 @@ public class Street : MonoBehaviour
     TrafficManager trafficManager;
 
     [SerializeField, HideInInspector]
-    private static int currentStreetID = 0;
+    Material streetMaterial;
 
+    [SerializeField, HideInInspector]
+    private static int currentStreetID = 0;
     [SerializeField, HideInInspector]
     int streetID;
-
     [SerializeField, HideInInspector]
     public float cost;
+
     [SerializeField, HideInInspector]
     Vector3 startPoint;
     [SerializeField, HideInInspector]
@@ -24,6 +26,8 @@ public class Street : MonoBehaviour
     List<Vector3> wayPoints;
     [SerializeField, HideInInspector]
     List<GameObject> wayPointSpheres;
+    [SerializeField, HideInInspector]
+    List<GameObject> cubes;
 
     [SerializeField, HideInInspector]
     GameObject startNode;
@@ -52,6 +56,10 @@ public class Street : MonoBehaviour
     {
         get { return wayPointSpheres; }
     }
+    public List<GameObject> Cubes
+    {
+        get { return cubes; }
+    }
     public GameObject StartNode
     {
         get { return startNode; }
@@ -61,14 +69,15 @@ public class Street : MonoBehaviour
         get { return endNode; }
     }
 
-    public void SetData(TrafficManager trafficManager, Vector3 startPoint, Vector3 endPoint)
+    public void SetData(TrafficManager trafficManager, Vector3 startPoint, Vector3 endPoint, Material streetMaterial)
     {
         wayPoints = new();
         wayPointSpheres = new();
-        streetLine = new();
+        cubes = new();
         this.trafficManager = trafficManager;
         this.startPoint = startPoint;
         this.endPoint = endPoint;
+        this.streetMaterial = streetMaterial;
         streetID = currentStreetID++;
         // I have to check if I should generate WayPoints and the start and end of the street,
         // because if the street connects to another noder, it already has a WayPoint at that location.
@@ -101,7 +110,7 @@ public class Street : MonoBehaviour
         {
             startNode = new GameObject("Node");
             startNode.transform.position = startPoint;
-            startNode.AddComponent<Node>().SetData(trafficManager, startPoint);
+            startNode.AddComponent<Node>().SetData(trafficManager, startPoint, streetMaterial);
             startNode.transform.SetParent(trafficManager.transform.Find("Nodes").transform, true);
             generateStartWayPoint = true;
         }
@@ -111,7 +120,7 @@ public class Street : MonoBehaviour
         {
             endNode = new GameObject("Node");
             endNode.transform.position = endPoint;
-            endNode.AddComponent<Node>().SetData(trafficManager, endPoint);
+            endNode.AddComponent<Node>().SetData(trafficManager, endPoint, streetMaterial);
             endNode.transform.SetParent(trafficManager.transform.Find("Nodes").transform, true);
             generateEndWayPoint = true;
         }
@@ -130,6 +139,8 @@ public class Street : MonoBehaviour
             wayPoints.Add(previousPoint + direction * spacing);
             previousPoint = previousPoint + direction * spacing;
         }
+        // I have to add another wayPoint here, because it does not generate in the loop before, because of the spacing.
+        wayPoints.Add(previousPoint + (endPoint - startPoint).normalized * spacing); 
         if (generateEndWayPoint) wayPoints.Add(endPoint);
     }
 
@@ -151,13 +162,32 @@ public class Street : MonoBehaviour
 
     private void GenerateModel()
     {
-        // Currently the model is just a line, will be changed later.
-        LineRenderer renderedLine = streetLine.AddComponent<LineRenderer>();
-        renderedLine.SetPosition(0, this.startPoint);
-        renderedLine.SetPosition(1, this.endPoint);
-        renderedLine.name = "StreetLine";
-        renderedLine.material.color = Color.gray;
-        streetLine.transform.parent = gameObject.transform;
+        for(int i = 0; i < wayPoints.Count; i++)
+        {
+            Vector3 wayPoint = wayPoints[i];
+            GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cube.transform.localPosition = wayPoint;
+            cube.transform.localScale = new(2, .1f, trafficManager.WayPointDistance);
+            cube.GetComponent<Collider>().enabled = false;
+            cube.GetComponent<Renderer>().material = streetMaterial;
+            Quaternion rotation = Quaternion.LookRotation((endPoint - cube.transform.position).normalized);
+            cube.transform.rotation = rotation;
+            if(i == wayPoints.Count - 1)
+            {
+                Quaternion lastRotation = Quaternion.LookRotation((startPoint - cube.transform.position).normalized);
+                cube.transform.rotation = lastRotation;
+            }
+            cube.transform.parent = gameObject.transform;
+            cubes.Add(cube);
+        }
+        // old Line code, not used, for debugging only
+        //streetLine = new();
+        //LineRenderer renderedLine = streetLine.AddComponent<LineRenderer>();
+        //renderedLine.SetPosition(0, this.startPoint);
+        //renderedLine.SetPosition(1, this.endPoint);
+        //renderedLine.name = "StreetLine";
+        //renderedLine.material.color = Color.gray;
+        //streetLine.transform.parent = gameObject.transform;
     }
 
     public void DeleteStreetContents()
@@ -167,6 +197,7 @@ public class Street : MonoBehaviour
         endNode.GetComponent<Node>().RemoveConnectedStreet(gameObject);
         DeleteNodes();
         DeleteLine();
+        DeleteCubes();
     }
     private void DeleteNodes()
     {
@@ -188,5 +219,9 @@ public class Street : MonoBehaviour
     private void DeleteLine()
     {
         Destroy(streetLine);
+    }
+    private void DeleteCubes()
+    {
+        foreach(GameObject cube in cubes) Destroy(cube);
     }
 }
